@@ -7,19 +7,26 @@ ym=100;
 sink.x=0.5*xm;
 sink.y=0.5*ym;
 %Number of Nodes in the field  
+global n;
 n=50;
 %Optimal Election Probability of a node to become cluster head/ 
 p=0.1;
 %Energy Model (all values in Joules)
 %Initial Energy 
+global Eo;
 Eo=0.5;
-%Eelec=Etx=Erx 
+%Eelec=Etx=Erx
+global ETX;
+global ERX;
 ETX=50*0.000000001;
 ERX=50*0.000000001;
 %Transmit Amplifier types 
+global Efs;
+global Emp;
 Efs=10*0.000000000001;
 Emp=0.0013*0.000000000001;
 %Data Aggregation Energy/ 
+global EDA;
 EDA=5*0.000000001;
 %Values for Hetereogeneity 
 %Percentage of nodes than are advanced 
@@ -27,9 +34,11 @@ EDA=5*0.000000001;
 %\alpha
 a=1;
 %maximum number of rounds
+global rmax;
 rmax=15;
 %%%%%%%%%%%%%%%%%%%%%%%%% END OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%
 %Computation of do
+global do;
 do=sqrt(Efs/Emp);
 %%%%%% Initialising the arrays %%%%%%%
 PACKETS_TO_CH=zeros;
@@ -200,7 +209,9 @@ CLUSTERHS(r)=cluster;
 % min_dis ---> base_dis
 % temp--->CH_dis
 
-[base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S]=evaluate_CHs(S,C,cluster,packets_TO_CH);
+
+% Evaluates CHs and calculates energy to the CH
+[base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S]=elect_CHs_To_NODES(S,C,cluster,packets_TO_CH);
 
 
 % for i=1:1:n
@@ -383,21 +394,21 @@ ylabel('Energy');
 title('LEACH');
 
 
-%%%%%%%%%%%%%% FUNCTIONS %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FUNCTIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Evaluates CHs and calculates energy to the CH
-function [base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S] = evaluate_CHs(S,C,cluster,packets_TO_CH)
+function [base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S] = elect_CHs_To_NODES(S,C,cluster,packets_TO_CH)
 %     Transmit Amplifier types 
-    Efs=10*0.000000000001;
-    Emp=0.0013*0.000000000001;
+    global Efs;
+    global Emp;
 %     Computation of do
-    do=sqrt(Efs/Emp);
+    global do;
 %     %Eelec=Etx=Erx 
-    ETX=50*0.000000001;
-    ERX=50*0.000000001;
+    global ETX;
+    global ERX;
 %     Data Aggregation Energy/ 
-    EDA=5*0.000000001;
-    n=50;
+    global EDA;
+    global n;
     for i=1:1:n
     if ( S(i).type=='N' && S(i).E>0 )
      if(cluster>=1)
@@ -429,4 +440,11 @@ function [base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S] = evaluate_CHs(
     end
      end
 end
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
