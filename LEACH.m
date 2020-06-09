@@ -10,6 +10,7 @@ sink.y=0.5*ym;
 global n;
 n=50;
 %Optimal Election Probability of a node to become cluster head/ 
+global p;
 p=0.1;
 %Energy Model (all values in Joules)
 %Initial Energy 
@@ -36,11 +37,16 @@ a=1;
 %maximum number of rounds
 global rmax;
 rmax=15;
+
+global cluster;
+global countCHs;
 %%%%%%%%%%%%%%%%%%%%%%%%% END OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%
 %Computation of do
 global do;
 do=sqrt(Efs/Emp);
-%%%%%% Initialising the arrays %%%%%%%
+%%%%%% Initialising  %%%%%%%
+global packets_TO_CH;
+global packets_TO_BS;
 PACKETS_TO_CH=zeros;
 PACKETS_TO_BS=zeros;
 % DEAD_N=zeros;
@@ -53,34 +59,36 @@ Y=zeros;
 %%%%%%%%%%%%%%%%%
 %Creation of the random Sensor Network
 figure(1);
-for i=1:1:n
-    S(i).xd=rand(1,1)*xm;
-    XR(i)=S(i).xd;
-    S(i).yd=rand(1,1)*ym;
-    YR(i)=S(i).yd;
-    S(i).G=0;
-    %initially there are no cluster heads only nodes
-    S(i).type='N';
-   
-%     temp_rnd0=i;
-%     Replaced i instead of temp_rand the if condition. 
-    %Random Election of Normal Nodes 
-%     if (i>=m*n+1) 
-        S(i).E=Eo;
-%         S(i).ENERGY=0;
-%         plot(S(i).xd,S(i).yd,'red o');
-%         hold on;
-%     end
-    %Random Election of Advanced Nodes
-%    if (temp_rnd0<m*n+1)  
-%         S(i).E=Eo*(1+a)
-%         S(i).ENERGY=1;
-%         plot(S(i).xd,S(i).yd,'+');
-%         hold on;
-%     end
-end
-S(n+1).xd=sink.x;
-S(n+1).yd=sink.y;
+[S] = initialise(n);
+
+% for i=1:1:n
+%     S(i).xd=rand(1,1)*xm;
+%     XR(i)=S(i).xd;
+%     S(i).yd=rand(1,1)*ym;
+%     YR(i)=S(i).yd;
+%     S(i).G=0;
+%     %initially there are no cluster heads only nodes
+%     S(i).type='N';
+%    
+% %     temp_rnd0=i;
+% %     Replaced i instead of temp_rand the if condition. 
+%     %Random Election of Normal Nodes 
+% %     if (i>=m*n+1) 
+%         S(i).E=Eo;
+% %         S(i).ENERGY=0;
+% %         plot(S(i).xd,S(i).yd,'red o');
+% %         hold on;
+% %     end
+%     %Random Election of Advanced Nodes
+% %    if (temp_rnd0<m*n+1)  
+% %         S(i).E=Eo*(1+a)
+% %         S(i).ENERGY=1;
+% %         plot(S(i).xd,S(i).yd,'+');
+% %         hold on;
+% %     end
+% end
+% S(n+1).xd=sink.x;
+% S(n+1).yd=sink.y;
 % plot(S(n+1).xd,S(n+1).yd,'green x');
 % hold on;
   
@@ -103,12 +111,15 @@ flag_first_dead=0;
     hold on;
     
   %Operation for epoch
-   if(mod(r,round(1/p))==0)
-     for i=1:1:n
-         S(i).G=0;
-         S(i).cl=0; 
-     end
-   end
+  [S]=epoch(r,S);
+  
+  
+%    if(mod(r,round(1/p))==0)
+%      for i=1:1:n
+%          S(i).G=0;
+%          S(i).cl=0; 
+%      end
+%    end
 % hold off;
 %Number of dead nodes
 % dead=0;
@@ -123,34 +134,37 @@ packets_TO_CH=0;
 %per round
 PACKETS_TO_CH(r)=0;
 PACKETS_TO_BS(r)=0;
-figure(1);
-for i=1:1:n
-    %checking if there is a dead node 
-%     if (S(i).E<=0)
-%         plot(S(i).xd,S(i).yd,'red +');
-%         dead=dead+1;
-%         if(S(i).ENERGY==1)
-%             dead_a=dead_a+1;
+%      checking if there is a dead node 
+
+[S] = check_for_dead_nodes(S);
+% figure(1);
+% for i=1:1:n
+%     %checking if there is a dead node 
+% %     if (S(i).E<=0)
+% %         plot(S(i).xd,S(i).yd,'red +');
+% %         dead=dead+1;
+% %         if(S(i).ENERGY==1)
+% %             dead_a=dead_a+1;
+% %         end
+%         %changed Energy to E
+%         if(S(i).E==0)
+%             dead_n=dead_n+1;
+%             plot(S(i).xd,S(i).yd,'red +');
 %         end
-        %changed Energy to E
-        if(S(i).E==0)
-            dead_n=dead_n+1;
-            plot(S(i).xd,S(i).yd,'red +');
-        end
-%         hold on;    
-%     end
-     if (S(i).E>0)
-         S(i).type='N';
-%         if (S(i).ENERGY==0)  
-         plot(S(i).xd,S(i).yd,'red o');
-          hold on;
-     end
-%         if (S(i).ENERGY==1)  
-%         plot(S(i).xd,S(i).yd,'+');
-%         end
-%         hold on;
-%     end
-end
+% %         hold on;    
+% %     end
+%      if (S(i).E>0)
+%          S(i).type='N';
+% %         if (S(i).ENERGY==0)  
+%          plot(S(i).xd,S(i).yd,'red o');
+%           hold on;
+%      end
+% %         if (S(i).ENERGY==1)  
+% %         plot(S(i).xd,S(i).yd,'+');
+% %         end
+% %         hold on;
+% %     end
+% end
 % plot(S(n+1).xd,S(n+1).yd,'x');
 % STATISTICS(r+1).DEAD=dead;
 % DEAD(r+1)=dead;
@@ -165,44 +179,52 @@ if (dead_n==1)
 end
 countCHs=0;
 cluster=1;
-for i=1:1:n
-   if(S(i).E>0)
-   temp_rand=rand;     
-   if ((S(i).G)<=0)
- %Selection of Cluster Heads/ 
- if(temp_rand<= (p/(1-p*mod(r,round(1/p)))))
-            countCHs=countCHs+1;
-%figure the logic for packets to BS
-            packets_TO_BS=packets_TO_BS+1;
-            PACKETS_TO_BS(r)=packets_TO_BS;
-            
-            S(i).type='C';
-            S(i).G=round(1/p); 
-            C(cluster).xd=S(i).xd;
-            C(cluster).yd=S(i).yd;
-            plot(S(i).xd,S(i).yd,'k*');
-            
-            distance=sqrt( (S(i).xd-(S(n+1).xd) )^2 + (S(i).yd-(S(n+1).yd) )^2 );
-            C(cluster).distance=distance;
-            C(cluster).id=i;
-            X(cluster)=S(i).xd;
-            Y(cluster)=S(i).yd;
-            cluster=cluster+1;
-            
-            %Calculation of Energy dissipated for CH 
-            if (distance>do)
-                S(i).E=S(i).E- ( (ETX+EDA)*(4000) + Emp*4000*( distance^4)); 
-            end
-            if (distance<=do)
-                S(i).E=S(i).E- ( (ETX+EDA)*(4000)  + Efs*4000*(distance^2)); 
-            end
- end     
-    
-    end
-  end 
-end
+ %Selection of Cluster Heads and Energy dissipated by CH to send
+ %advertisement to BS
+ 
+[PACKETS_TO_BS,C,S,X,Y] = Cluster_Formation(S,r);
+
+
+% for i=1:1:n
+%    if(S(i).E>0)
+%    temp_rand=rand;     
+%    if ((S(i).G)<=0)
+%  %Selection of Cluster Heads/ 
+%  if(temp_rand<= (p/(1-p*mod(r,round(1/p)))))
+%             countCHs=countCHs+1;
+% %figure the logic for packets to BS
+%             packets_TO_BS=packets_TO_BS+1;
+%             PACKETS_TO_BS(r)=packets_TO_BS;
+%             
+%             S(i).type='C';
+%             S(i).G=round(1/p); 
+%             C(cluster).xd=S(i).xd;
+%             C(cluster).yd=S(i).yd;
+%             plot(S(i).xd,S(i).yd,'k*');
+%             
+%             distance=sqrt( (S(i).xd-(S(n+1).xd) )^2 + (S(i).yd-(S(n+1).yd) )^2 );
+%             C(cluster).distance=distance;
+%             C(cluster).id=i;
+%             X(cluster)=S(i).xd;
+%             Y(cluster)=S(i).yd;
+%             cluster=cluster+1;
+%             
+%             %Calculation of Energy dissipated for CH 
+%             if (distance>do)
+%                 S(i).E=S(i).E- ( (ETX+EDA)*(4000) + Emp*4000*( distance^4)); 
+%             end
+%             if (distance<=do)
+%                 S(i).E=S(i).E- ( (ETX+EDA)*(4000)  + Efs*4000*(distance^2)); 
+%             end
+%  end     
+%     
+%     end
+%   end 
+% end
+
+
 %Delete this
-cluster=cluster-1;
+
 STATISTICS(r).CLUSTERHEADS=cluster;
 CLUSTERHS(r)=cluster;
 %Election of Associated Cluster Head for Normal Nodes
@@ -210,8 +232,9 @@ CLUSTERHS(r)=cluster;
 % temp--->CH_dis
 
 
-% Evaluates CHs and calculates energy to the CH
-[base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S]=elect_CHs_To_NODES(S,C,cluster,packets_TO_CH);
+% Evaluates CHs and calculates energy of the nodes when they send packets
+% to CH in response to the advertisement message sent by the CH
+[base_dis,min_dis_cluster,energy_nodes,S]=elect_CHs_To_NODES(S,C);
 
 
 % for i=1:1:n
@@ -268,8 +291,346 @@ rcountCHs=rcountCHs+countCHs;
 %         end
 %     end
 PACKETS_TO_CH(r)=packets_TO_CH;
-  for i=1:1:n
-      if(S(i).type=='N')
+
+%Plotting points in clusters
+plotting_clusters(S);
+
+%   for i=1:1:n
+%   if(S(i).type=='N')
+%       if(S(i).cluster==1)
+%           plot(S(i).xd,S(i).yd,'red o');
+%       end
+%       if(S(i).cluster==2)
+%           plot(S(i).xd,S(i).yd,'green o');
+%       end
+%       if(S(i).cluster==3)
+%           plot(S(i).xd,S(i).yd,'blue o');
+%       end
+%       if(S(i).cluster==4)
+%           plot(S(i).xd,S(i).yd,'yellow o');
+%       end
+%        if(S(i).cluster==5)
+%            plot(S(i).xd,S(i).yd,'red s');
+%        end
+%       if(S(i).cluster==5)
+%           plot(S(i).xd,S(i).yd,'magenta o');
+%       end
+%       if(S(i).cluster==6)
+%           plot(S(i).xd,S(i).yd,'black o');
+%       end
+%       if(S(i).cluster==7)
+%           plot(S(i).xd,S(i).yd,'cyan o');
+%       end
+%        if(S(i).cluster==8)
+%           plot(S(i).xd,S(i).yd,'blue d');
+%        end
+%        if(S(i).cluster==9)
+%           plot(S(i).xd,S(i).yd,'magenta ^');
+%        end
+%        if(S(i).cluster==10)
+%           plot(S(i).xd,S(i).yd,'black <');
+%        end
+%        if(S(i).cluster==11)
+%           plot(S(i).xd,S(i).yd,'cyan v');
+%        end
+%        if(S(i).cluster==12)
+%           plot(S(i).xd,S(i).yd,'red ^');
+%       end
+%   end
+%   end
+%   hold off;
+  end
+  
+  %Plots the path for the mobile sink 
+  path_plan(X,Y);
+  %Plots final graphs 
+  plot_graphs(PACKETS_TO_CH,PACKETS_TO_BS,CLUSTERHS,energy_nodes);
+  
+  
+%%%%%%%%%%%
+%%% Functions %%%%%
+
+    
+
+
+
+
+
+
+%%%%%%%%%%%%
+% Path for mobile sink
+% hold on
+% %set axis limits ahead of time
+% axis([0 100 0 100]); 
+% %sorting
+% for i=1:countCHs
+%     for j=i+1:countCHs
+%         if (X(i)>X(j))
+%             a =  X(i);
+%             b =  Y(i);
+%             X(i) = X(j);
+%             Y(i) = Y(j);
+%             X(j) = a;
+%             Y(j) = b;
+%         end
+%     end
+% end
+% % plot empty line objects (with NaN values)
+% line1 = plot(X, nan(size(X)),'-','Color','r');
+% marker1 = plot(nan,nan,'*','Color','r');
+% % Path for joining CHs
+% for k=1:countCHs
+%     %marker plots
+%     marker1.XData = X(k);
+%     marker1.YData = Y(k);
+%     
+%     %Line plots
+%     line1.YData(k) = Y(k);
+%     
+%     drawnow(); 
+%     pause(0.5);
+% end
+%}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   STATISTICS    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                                     %
+%  DEAD  : a rmax x 1 array of number of dead nodes/round                             %
+%  DEAD_A : a rmax x 1 array of number of dead Advanced nodes/round                   %
+%  DEAD_N : a rmax x 1 array of number of dead Normal nodes/round                     %
+%  CLUSTERHS : a rmax x 1 array of number of Cluster Heads/round                      %
+%  PACKETS_TO_BS : a rmax x 1 array of number packets send to Base Station/round      %
+%  PACKETS_TO_CH : a rmax x 1 array of number of packets send to ClusterHeads/round   %
+%  first_dead: the round where the first node died                                    %
+%                                                                                     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FUNCTIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Evaluates CHs and calculates energy to the CH
+function [base_dis,min_dis_cluster,energy_nodes,S] = elect_CHs_To_NODES(S,C)
+%     Transmit Amplifier types 
+    global Efs;
+    global Emp;
+%     Computation of do
+    global do;
+%     %Eelec=Etx=Erx 
+    global ETX;
+    global ERX;
+%     Data Aggregation Energy/ 
+    global EDA;
+    global n;
+    global cluster;
+    global packets_TO_CH;
+    for i=1:1:n
+    if ( S(i).type=='N' && S(i).E>0 )
+     if(cluster>=1)
+           base_dis=sqrt( (S(i).xd-S(n+1).xd)^2 + (S(i).yd-S(n+1).yd)^2 );
+           min_dis_cluster=1;
+           for CHcounter=1:1:cluster
+            CH_dis(CHcounter)=sqrt( (S(i).xd-C(CHcounter).xd)^2 + (S(i).yd-C(CHcounter).yd)^2);
+           end
+           [CH_dis,min_dis_cluster]=min(CH_dis);
+%         S(i).cluster = min_dis_cluster;
+           if (CH_dis<base_dis)
+            base_dis=CH_dis;
+            if (base_dis>do)
+                S(i).E=S(i).E- ( ETX*(4000) + Emp*4000*( base_dis^4)); 
+            end
+            if (CH_dis<=do)
+                S(i).E=S(i).E- ( ETX*(4000) + Efs*4000*( base_dis^2)); 
+            end
+        %Energy dissipated by cluster heads
+            if(base_dis>0)
+                S(C(min_dis_cluster).id).E = S(C(min_dis_cluster).id).E- ( (ERX + EDA)*4000 ); 
+                packets_TO_CH = (packets_TO_CH)+1; 
+            end
+           end
+     S(i).base_dis=base_dis;
+     S(i).cluster=min_dis_cluster;
+     end
+   energy_nodes(i)= S(i).E;
+    end
+     end
+end
+
+
+
+function [PACKETS_TO_BS,C,S,X,Y] = Cluster_Formation(S,r)
+    global n;
+    global countCHs;
+    global packets_TO_BS;
+    global do;
+    global p;
+    global cluster;
+%     Transmit Amplifier types 
+    global Efs;
+    global Emp;
+%     %Eelec=Etx=Erx 
+    global ETX;
+    global ERX;
+%     Data Aggregation Energy/ 
+    global EDA;    
+    
+
+    
+    distance=0;
+   for i=1:1:n
+   if(S(i).E>0)
+   temp_rand=rand;     
+   if ((S(i).G)<=0)
+ %Selection of Cluster Heads/ 
+   if(temp_rand<= (p/(1-p*mod(r,round(1/p)))))
+            countCHs=countCHs+1;
+%figure the logic for packets to BS
+            packets_TO_BS=packets_TO_BS+1;
+            PACKETS_TO_BS(r)=packets_TO_BS;
+            
+            S(i).type='C';
+            S(i).G=round(1/p); 
+            C(cluster).xd=S(i).xd;
+            C(cluster).yd=S(i).yd;
+            plot(S(i).xd,S(i).yd,'k*');
+            
+            distance=sqrt( (S(i).xd-(S(n+1).xd) )^2 + (S(i).yd-(S(n+1).yd) )^2 );
+            C(cluster).distance=distance;
+            C(cluster).id=i;
+            X(cluster)=S(i).xd;
+            Y(cluster)=S(i).yd;
+            cluster=cluster+1;
+            
+            %Calculation of Energy dissipated for CH 
+            if (distance>do)
+                S(i).E=S(i).E- ( (ETX+EDA)*(4000) + Emp*4000*( distance^4)); 
+            end
+            if (distance<=do)
+                S(i).E=S(i).E- ( (ETX+EDA)*(4000)  + Efs*4000*(distance^2)); 
+            end
+   end     
+   end
+   end 
+   end
+   cluster=cluster-1;
+end
+
+
+
+function path_plan(X,Y)
+    % Path for mobile sink
+    global countCHs;
+hold on
+%set axis limits ahead of time
+axis([0 100 0 100]); 
+%sorting
+for i=1:countCHs
+    for j=i+1:countCHs
+        if (X(i)>X(j))
+            a =  X(i);
+            b =  Y(i);
+            X(i) = X(j);
+            Y(i) = Y(j);
+            X(j) = a;
+            Y(j) = b;
+        end
+    end
+end
+% plot empty line objects (with NaN values)
+line1 = plot(X, nan(size(X)),'-','Color','r');
+marker1 = plot(nan,nan,'*','Color','r');
+% Path for joining CHs
+for k=1:countCHs
+    %marker plots
+    marker1.XData = X(k);
+    marker1.YData = Y(k);
+    
+    %Line plots
+    line1.YData(k) = Y(k);
+    
+    drawnow(); 
+    pause(1);
+end
+end
+
+
+function plot_graphs(PACKETS_TO_CH,PACKETS_TO_BS,CLUSTERHS,energy_nodes)
+global rmax;
+global n;
+r=1:rmax;
+i=1:n;
+figure (2);
+plot(r,PACKETS_TO_CH(r));
+xlabel('Rounds');
+ylabel('Number of packets sent to the CHs');
+title('LEACH');
+figure(3);
+plot(r,PACKETS_TO_BS(r));
+xlabel('Rounds');
+ylabel('Number of packets sent by the CHs to BS');
+title('LEACH');
+figure(4);
+plot(r,CLUSTERHS(r));
+xlabel('Rounds');
+ylabel('Number of cluster heads');
+title('LEACH');
+figure(5);
+plot(i,energy_nodes(i));
+xlim([1 50]);
+ylim([0.2 0.9]);
+xlabel('Nodes');
+ylabel('Energy');
+title('LEACH');
+end
+
+
+function[S]=epoch(r,S)
+    global p;
+    global n;
+     if(mod(r,round(1/p))==0)
+     for i=1:1:n
+         S(i).G=0;
+%          S(i).cl=0; 
+     end
+   end
+end
+
+
+
+function[S] = check_for_dead_nodes(S)
+    global n;
+    figure(1);
+    for i=1:1:n
+        %checking if there is a dead node 
+    %     if (S(i).E<=0)
+    %         plot(S(i).xd,S(i).yd,'red +');
+    %         dead=dead+1;
+    %         if(S(i).ENERGY==1)
+    %             dead_a=dead_a+1;
+    %         end
+            %changed Energy to E
+            if(S(i).E==0)
+                dead_n=dead_n+1;
+                plot(S(i).xd,S(i).yd,'red +');
+            end
+    %         hold on;    
+    %     end
+         if (S(i).E>0)
+             S(i).type='N';
+    %         if (S(i).ENERGY==0)  
+             plot(S(i).xd,S(i).yd,'red o');
+              hold on;
+         end
+    %         if (S(i).ENERGY==1)  
+    %         plot(S(i).xd,S(i).yd,'+');
+    %         end
+    %         hold on;
+    %     end
+    end
+    
+end
+
+function plotting_clusters(S)
+ global n;
+ for i=1:1:n
+ if(S(i).type=='N')
       if(S(i).cluster==1)
           plot(S(i).xd,S(i).yd,'red o');
       end
@@ -312,139 +673,16 @@ PACKETS_TO_CH(r)=packets_TO_CH;
   end
   end
   hold off;
-  end
-%%%%%%%%%%%
-%%% Functions %%%%%
-
-    
-
-
-
-
-
-
-%%%%%%%%%%%%
-% Path for mobile sink
-hold on
-%set axis limits ahead of time
-axis([0 100 0 100]); 
-%sorting
-for i=1:countCHs
-    for j=i+1:countCHs
-        if (X(i)>X(j))
-            a =  X(i);
-            b =  Y(i);
-            X(i) = X(j);
-            Y(i) = Y(j);
-            X(j) = a;
-            Y(j) = b;
-        end
-    end
 end
-% plot empty line objects (with NaN values)
-line1 = plot(X, nan(size(X)),'-','Color','r');
-marker1 = plot(nan,nan,'*','Color','r');
-% Path for joining CHs
-for k=1:countCHs
-    %marker plots
-    marker1.XData = X(k);
-    marker1.YData = Y(k);
-    
-    %Line plots
-    line1.YData(k) = Y(k);
-    
-    drawnow(); 
-    pause(0.5);
-end
-%}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   STATISTICS    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                                                                     %
-%  DEAD  : a rmax x 1 array of number of dead nodes/round                             %
-%  DEAD_A : a rmax x 1 array of number of dead Advanced nodes/round                   %
-%  DEAD_N : a rmax x 1 array of number of dead Normal nodes/round                     %
-%  CLUSTERHS : a rmax x 1 array of number of Cluster Heads/round                      %
-%  PACKETS_TO_BS : a rmax x 1 array of number packets send to Base Station/round      %
-%  PACKETS_TO_CH : a rmax x 1 array of number of packets send to ClusterHeads/round   %
-%  first_dead: the round where the first node died                                    %
-%                                                                                     %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-r=1:rmax;
-i=1:n;
-figure (2);
-plot(r,PACKETS_TO_CH(r));
-xlabel('Rounds');
-ylabel('Number of packets sent to the CHs');
-title('LEACH');
-figure(3);
-plot(r,PACKETS_TO_BS(r));
-xlabel('Rounds');
-ylabel('Number of packets sent by the CHs to BS');
-title('LEACH');
-figure(4);
-plot(r,CLUSTERHS(r));
-xlabel('Rounds');
-ylabel('Number of cluster heads');
-title('LEACH');
-figure(5);
-plot(i,energy_nodes);
-xlim([1 50]);
-ylim([0.2 0.9]);
-xlabel('Nodes');
-ylabel('Energy');
-title('LEACH');
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FUNCTIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Evaluates CHs and calculates energy to the CH
-function [base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S] = elect_CHs_To_NODES(S,C,cluster,packets_TO_CH)
-%     Transmit Amplifier types 
-    global Efs;
-    global Emp;
-%     Computation of do
-    global do;
-%     %Eelec=Etx=Erx 
-    global ETX;
-    global ERX;
-%     Data Aggregation Energy/ 
-    global EDA;
-    global n;
-    for i=1:1:n
-    if ( S(i).type=='N' && S(i).E>0 )
-     if(cluster>=1)
-           base_dis=sqrt( (S(i).xd-S(n+1).xd)^2 + (S(i).yd-S(n+1).yd)^2 );
-           min_dis_cluster=1;
-           for CHcounter=1:1:cluster
-            CH_dis(CHcounter)=sqrt( (S(i).xd-C(CHcounter).xd)^2 + (S(i).yd-C(CHcounter).yd)^2);
-           end
-           [CH_dis,min_dis_cluster]=min(CH_dis);
-%         S(i).cluster = min_dis_cluster;
-           if (CH_dis<base_dis)
-            base_dis=CH_dis;
-            if (base_dis>do)
-                S(i).E=S(i).E- ( ETX*(4000) + Emp*4000*( base_dis^4)); 
-            end
-            if (CH_dis<=do)
-                S(i).E=S(i).E- ( ETX*(4000) + Efs*4000*( base_dis^2)); 
-            end
-        %Energy dissipated by cluster heads
-            if(base_dis>0)
-                S(C(min_dis_cluster).id).E = S(C(min_dis_cluster).id).E- ( (ERX + EDA)*4000 ); 
-                packets_TO_CH = (packets_TO_CH)+1; 
-            end
-           end
-     S(i).base_dis=base_dis;
-     S(i).cluster=min_dis_cluster;
+function[S] = initialise(no_of_nodes)
+     for i=1:1:no_of_nodes
+        S(i) = Sensor_Node;
+        S(i)=Add_Positions(S(i));
      end
-   energy_nodes(i)= S(i).E;
-    end
-     end
+     S(no_of_nodes+1).xd = 50;
+     S(no_of_nodes+1).yd = 50;     
 end
-
-
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
