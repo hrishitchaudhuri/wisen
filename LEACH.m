@@ -193,24 +193,29 @@ for i=1:1:n
   end 
 end
 %Delete this
-STATISTICS(r).CLUSTERHEADS=cluster-1;
-CLUSTERHS(r)=cluster-1;
+cluster=cluster-1;
+STATISTICS(r).CLUSTERHEADS=cluster;
+CLUSTERHS(r)=cluster;
 %Election of Associated Cluster Head for Normal Nodes
 % min_dis ---> base_dis
 % temp--->CH_dis
-for i=1:1:n
-   if ( S(i).type=='N' && S(i).E>0 )
-     if(cluster-1>=1)
-       base_dis=sqrt( (S(i).xd-S(n+1).xd)^2 + (S(i).yd-S(n+1).yd)^2 );
-       min_dis_cluster=1;
-        for CHcounter=1:1:cluster-1
-            CH_dis(CHcounter)=sqrt( (S(i).xd-C(CHcounter).xd)^2 + (S(i).yd-C(CHcounter).yd)^2);
-        end
-        [CH_dis,min_dis_cluster]=min(CH_dis);
+
+[base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S]=evaluate_CHs(S,C,cluster,packets_TO_CH);
+
+
+% for i=1:1:n
+%    if ( S(i).type=='N' && S(i).E>0 )
+%      if(cluster-1>=1)
+%        base_dis=sqrt( (S(i).xd-S(n+1).xd)^2 + (S(i).yd-S(n+1).yd)^2 );
+%        min_dis_cluster=1;
+%         for CHcounter=1:1:cluster
+%             CH_dis(CHcounter)=sqrt( (S(i).xd-C(CHcounter).xd)^2 + (S(i).yd-C(CHcounter).yd)^2);
+%         end
+%         [CH_dis,min_dis_cluster]=min(CH_dis);
 %         S(i).cluster = min_dis_cluster;
-        if (CH_dis<base_dis)
-            base_dis=CH_dis;
-        end
+%         if (CH_dis<base_dis)
+%             base_dis=CH_dis;
+%         end
         
      
 %        for c=1:1:cluster-1
@@ -224,24 +229,24 @@ for i=1:1:n
        %Energy dissipated by sending packets to Cluster Head by normal
        %nodes 
 %             base_dis;
-            if (base_dis>do)
-                S(i).E=S(i).E- ( ETX*(4000) + Emp*4000*( base_dis^4)); 
-            end
-            if (CH_dis<=do)
-                S(i).E=S(i).E- ( ETX*(4000) + Efs*4000*( base_dis^2)); 
-            end
+%             if (base_dis>do)
+%                 S(i).E=S(i).E- ( ETX*(4000) + Emp*4000*( base_dis^4)); 
+%             end
+%             if (CH_dis<=do)
+%                 S(i).E=S(i).E- ( ETX*(4000) + Efs*4000*( base_dis^2)); 
+%             end
         %Energy dissipated by cluster heads
-        if(base_dis>0)
-          S(C(min_dis_cluster).id).E = S(C(min_dis_cluster).id).E- ( (ERX + EDA)*4000 ); 
-         packets_TO_CH = (packets_TO_CH)+1; 
-        end
-       S(i).base_dis=base_dis;
-       S(i).cluster=min_dis_cluster;
+%         if(base_dis>0)
+%           S(C(min_dis_cluster).id).E = S(C(min_dis_cluster).id).E- ( (ERX + EDA)*4000 ); 
+%          packets_TO_CH = (packets_TO_CH)+1; 
+%         end
+%        S(i).base_dis=base_dis;
+%        S(i).cluster=min_dis_cluster;
            
-     end
-   end
-   energy_nodes(i)= S(i).E;
-end
+%      end
+%    end
+%    energy_nodes(i)= S(i).E;
+% end
  
 % countCHs;
 rcountCHs=rcountCHs+countCHs;
@@ -298,7 +303,16 @@ PACKETS_TO_CH(r)=packets_TO_CH;
   hold off;
   end
 %%%%%%%%%%%
+%%% Functions %%%%%
 
+    
+
+
+
+
+
+
+%%%%%%%%%%%%
 % Path for mobile sink
 hold on
 %set axis limits ahead of time
@@ -367,3 +381,52 @@ ylim([0.2 0.9]);
 xlabel('Nodes');
 ylabel('Energy');
 title('LEACH');
+
+
+%%%%%%%%%%%%%% FUNCTIONS %%%%%%%%%%%%%%%%%%%
+
+% Evaluates CHs and calculates energy to the CH
+function [base_dis,min_dis_cluster,energy_nodes,packets_TO_CH,S] = evaluate_CHs(S,C,cluster,packets_TO_CH)
+%     Transmit Amplifier types 
+    Efs=10*0.000000000001;
+    Emp=0.0013*0.000000000001;
+%     Computation of do
+    do=sqrt(Efs/Emp);
+%     %Eelec=Etx=Erx 
+    ETX=50*0.000000001;
+    ERX=50*0.000000001;
+%     Data Aggregation Energy/ 
+    EDA=5*0.000000001;
+    n=50;
+    for i=1:1:n
+    if ( S(i).type=='N' && S(i).E>0 )
+     if(cluster>=1)
+           base_dis=sqrt( (S(i).xd-S(n+1).xd)^2 + (S(i).yd-S(n+1).yd)^2 );
+           min_dis_cluster=1;
+           for CHcounter=1:1:cluster
+            CH_dis(CHcounter)=sqrt( (S(i).xd-C(CHcounter).xd)^2 + (S(i).yd-C(CHcounter).yd)^2);
+           end
+           [CH_dis,min_dis_cluster]=min(CH_dis);
+%         S(i).cluster = min_dis_cluster;
+           if (CH_dis<base_dis)
+            base_dis=CH_dis;
+            if (base_dis>do)
+                S(i).E=S(i).E- ( ETX*(4000) + Emp*4000*( base_dis^4)); 
+            end
+            if (CH_dis<=do)
+                S(i).E=S(i).E- ( ETX*(4000) + Efs*4000*( base_dis^2)); 
+            end
+        %Energy dissipated by cluster heads
+            if(base_dis>0)
+                S(C(min_dis_cluster).id).E = S(C(min_dis_cluster).id).E- ( (ERX + EDA)*4000 ); 
+                packets_TO_CH = (packets_TO_CH)+1; 
+            end
+           end
+     S(i).base_dis=base_dis;
+     S(i).cluster=min_dis_cluster;
+     end
+   energy_nodes(i)= S(i).E;
+    end
+     end
+end
+   
