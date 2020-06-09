@@ -16,6 +16,9 @@ NUM_NODES = 100;
 % Number of Clusters
 k = 3;
 
+%%%%%%%%%%%%%%%%%%%% END OF PARAMETERS %%%%%%%%%%%%%%%%%%%%
+
+
 % Creating a random sensor network
 figure(1);
 
