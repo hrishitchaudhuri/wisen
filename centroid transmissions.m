@@ -72,6 +72,9 @@ end
 
 wake_clust = 1;
 dead_nodes = 0;
+plot_idx = 1;
+round_stat = zeros;
+dead_stats = zeros;
 
 for i = 1:1:(k*rounds)
     for i = 1:1:NUM_NODES
@@ -97,4 +100,18 @@ for i = 1:1:(k*rounds)
     
     pause(0.5);
     wake_clust = mod(wake_clust + 1, k);
+    
+    if (mod(i, k) == 0)
+        round_stat(plot_idx) = plot_idx;
+        dead_stats(plot_idx) = dead_nodes;
+        plot_idx = plot_idx + 1;
+    end
+    
+    if (dead_nodes == NUM_NODES)
+        break;
+    end
 end
+
+figure(2);
+plot(round_stat, dead_stats);
+hold on;
