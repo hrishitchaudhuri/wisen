@@ -1,4 +1,3 @@
-%%
 clc;
 clear all;
 close all;
@@ -74,23 +73,23 @@ i=i+1;
 end
 disp(go);
 disp('go final');
-choice='y';
-while(choice=='y')
 source=input('Enter the source node: ');
 dest=input('Enter the destination node: ');
 trace(1)=source;
 j=2;
-[row,col]=find(go(dest,:,source)==min(go(dest,:,source)));
-choice=input('Do you want to try again (y/n):','s');
-end
-
-%%
+% [row,col]=find(go(dest,:,source)==min(go(dest,:,source)));
 while(source~=dest)
 [row,col]=find(go(dest,:,source)==min(go(dest,:,source)));
 %q=find(go(dest,:,source)==min(go(dest,:,source)));
-trace(j)=col;
-source=col;
-j=j+1;
+if (numel(col)>1)
+    trace(j)=col(1);
+    source=col(1);
+    j=j+1;
+else
+    trace(j)=col;
+    source=col;
+    j=j+1;
+end
 end
 k=1:j-1;
 disp(trace(k));
