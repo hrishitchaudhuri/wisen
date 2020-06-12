@@ -1,4 +1,4 @@
-clc;clear;close;
+clc;clear all;close all;
 
 %%%%%%%%%%%%%%%%%%%% PARAMETERS %%%%%%%%%%%%%%%%%%%%
 
@@ -11,11 +11,11 @@ sink.x = 0.5 * x_max;
 sink.y = 0.5 * y_max;
 
 % Number of Nodes
-NUM_NODES = 5;
+NUM_NODES = 10;
 
 % Number of Clusters
 global k;
-k = 1;
+k = 2;
 
 % Initial Energy of Each Node
 Eo=0.5;
@@ -208,21 +208,21 @@ function[nodes,source_nodes,G] = route_taken(nodes,NUM_NODES,distance)
                     else
                         G=addedge(G,j,(nodes(j).cluster+NUM_NODES+1),Inf);
                     end          
-                elseif((distance_nodes>threshold)&&(nodes(j).state==1)&&(i~=j))
+                if((distance_nodes>threshold)&&(nodes(j).state==1)&&(i~=j))
                     if(distance_nodes<nodes(j).distance)
                         G=addedge(G,i,j,distance_nodes);
                     else
                         G=addedge(G,j,(nodes(j).cluster+NUM_NODES+1),nodes(j).distance);
                     end
                 end            
-            end
+               end
+             end
         end
-     end
 %        for i=1:1:NUM_NODES
 %            nodes(i).route = shortestpath(G,i,nodes(i).cluster+NUM_NODES+1);
 %        end
+     end
 end
-
 
 %      G=graph();
 %      for i=1:1:NUM_NODES
