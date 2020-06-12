@@ -11,11 +11,11 @@ sink.x = 0.5 * x_max;
 sink.y = 0.5 * y_max;
 
 % Number of Nodes
-NUM_NODES = 10;
+NUM_NODES = 5;
 
 % Number of Clusters
 global k;
-k = 3;
+k = 1;
 
 % Initial Energy of Each Node
 Eo=0.5;
@@ -34,7 +34,7 @@ Emp=0.0013*0.0000000001;
 
 % Number of Rounds
 global rounds;
-rounds = 100;
+rounds = 10;
 
 %%%%%%%%%%%%%%%%%%%% END OF PARAMETERS %%%%%%%%%%%%%%%%%%%%
 
@@ -190,29 +190,37 @@ end
 %     
 % end
 
-%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%
 
 function[nodes,source_nodes,G] = route_taken(nodes,NUM_NODES,distance)
      source_nodes = zeros;
      G=digraph();
-     threshold = 15; 
+     threshold = 12; 
      for i=1:1:NUM_NODES
         for j=1:1:NUM_NODES
             if((nodes(i).cluster==nodes(j).cluster)&&(i~=j))
                 source_nodes(i,j) = j;
                 [distance_nodes] = distance_between_nodes(nodes,i,j);
-                if(distance_nodes<=threshold)
+                if((distance_nodes<=threshold)&&(nodes(j).state==1))
                     G=addedge(G,i,j,distance_nodes);
                     if(nodes(j).distance<=threshold)
                         G=addedge(G,j,(nodes(j).cluster+NUM_NODES+1),nodes(j).distance);
+                    else
+                        G=addedge(G,j,(nodes(j).cluster+NUM_NODES+1),Inf);
+                    end          
+                elseif((distance_nodes>threshold)&&(nodes(j).state==1)&&(i~=j))
+                    if(distance_nodes<nodes(j).distance)
+                        G=addedge(G,i,j,distance_nodes);
+                    else
+                        G=addedge(G,j,(nodes(j).cluster+NUM_NODES+1),nodes(j).distance);
                     end
-                end
+                end            
             end
         end
      end
-%       for i=1:1:NUM_NODES
-%           nodes(i).route = shortestpath(G,i,nodes(i).cluster+NUM_NODES+1);
-%       end
+%        for i=1:1:NUM_NODES
+%            nodes(i).route = shortestpath(G,i,nodes(i).cluster+NUM_NODES+1);
+%        end
 end
 
 
