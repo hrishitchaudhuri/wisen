@@ -12,6 +12,8 @@ classdef Sensor_Node
         sink_y;
         state = 1;
         cluster;
+        distance;
+        route=zeros;
     end
     
      methods
