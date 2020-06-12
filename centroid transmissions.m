@@ -195,19 +195,24 @@ end
 function[nodes,source_nodes,G] = route_taken(nodes,NUM_NODES,distance)
      source_nodes = zeros;
      G=digraph();
+     threshold = 15; 
      for i=1:1:NUM_NODES
         for j=1:1:NUM_NODES
             if((nodes(i).cluster==nodes(j).cluster)&&(i~=j))
                 source_nodes(i,j) = j;
                 [distance_nodes] = distance_between_nodes(nodes,i,j);
-                G=addedge(G,i,j,distance_nodes);
-                G=addedge(G,j,(nodes(j).cluster+NUM_NODES+1),nodes(j).distance);
+                if(distance_nodes<=threshold)
+                    G=addedge(G,i,j,distance_nodes);
+                    if(nodes(j).distance<=threshold)
+                        G=addedge(G,j,(nodes(j).cluster+NUM_NODES+1),nodes(j).distance);
+                    end
+                end
             end
         end
      end
-      for i=1:1:NUM_NODES
-          nodes(i).route = shortestpath(G,i,nodes(i).cluster+NUM_NODES+1);
-      end
+%       for i=1:1:NUM_NODES
+%           nodes(i).route = shortestpath(G,i,nodes(i).cluster+NUM_NODES+1);
+%       end
 end
 
 
