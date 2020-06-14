@@ -116,7 +116,7 @@ dead_nodes = 0;
 while dead_nodes < NUM_NODES
     dead_nodes = 0;
     for j = 1:1:num_temp
-        if (nodes(j).state == 1 && nodes(j).cluster == wake_clust)
+        if (nodes(j).state == 1) & (nodes(j).cluster == wake_clust)
             for m = 1:1:length(nodes(j).route)-1
                 if (nodes(j).route(m+1) <=100)  
                     if (nodes(nodes(j).route(m)).state == 1 && nodes(nodes(j).route(m+1)).state == 1)
@@ -138,26 +138,26 @@ while dead_nodes < NUM_NODES
                 
                 
                     if nodes(nodes(j).route(m)).battery <= 0.1*Eo
-                        nodes(nodes(j).route(m)).state == 0;
+                        nodes(nodes(j).route(m)).state = 0;
                         plot(nodes(nodes(j).route(m)).x, nodes(nodes(j).route(m)).y, 'black x');
                     end
                 
                     if nodes(nodes(j).route(m+1)).battery <= 0.1*Eo
-                        nodes(nodes(j).route(m+1)).state == 0;
+                        nodes(nodes(j).route(m+1)).state = 0;
                         plot(nodes(nodes(j).route(m+1)).x, nodes(nodes(j).route(m+1)).y, 'black x');
                     end
                 
                 else
                     if (nodes(nodes(j).route(m)).distance > do)
-                        nodes(nodes(j).route(m)).battery = nodes(nodes(j).route(m)).battery - ((ETX)*(packet_length) + Emp*packet_length*(dist_node^2)); 
+                        nodes(nodes(j).route(m)).battery = nodes(nodes(j).route(m)).battery - ((ETX)*(packet_length) + Emp*packet_length*(nodes(nodes(j).route(m)).distance^2)); 
                     end
         
                     if (nodes(nodes(j).route(m)).distance <= do)
-                        nodes(nodes(j).route(m)).battery = nodes(nodes(j).route(m)).battery - ((ETX)*(packet_length) + Efs*packet_length*(dist_node)); 
+                        nodes(nodes(j).route(m)).battery = nodes(nodes(j).route(m)).battery - ((ETX)*(packet_length) + Efs*packet_length*(nodes(nodes(j).route(m)).distance)); 
                     end
                     
                     if nodes(nodes(j).route(m)).battery <= 0.1*Eo
-                        nodes(nodes(j).route(m)).state == 0;
+                        nodes(nodes(j).route(m)).state = 0;
                         plot(nodes(nodes(j).route(m)).x, nodes(nodes(j).route(m)).y, 'black x');
                     end
                 end
@@ -167,21 +167,21 @@ while dead_nodes < NUM_NODES
     end
     
     for p_0 = 1:1:NUM_NODES
-        if nodes(p_0).state == 0 && findedge(G, p_0, nodes(p_0).cluster + NUM_NODES + 1) ~= zeros
+        if (nodes(p_0).state == 0) & (findedge(G, p_0, nodes(p_0).cluster + NUM_NODES + 1) ~= zeros)
             G = rmedge(G, p_0, nodes(p_0).cluster + NUM_NODES + 1);
         end
         
         for p_1 = p_0:1:NUM_NODES
-            if (findedge(G, p_0, p_1) ~= zeros && nodes(p_1).state == 0) || nodes(p_0).state == 0
+            if (findedge(G, p_0, p_1) ~= zeros) & (nodes(p_1).state == 0) || nodes(p_0).state == 0
                 G = rmedge(G, p_0, p_1);
             end
         end
     end
     
-    for p = 1:1NUM_NODES
+    for p = 1:1:NUM_NODES
         nodes(p).route = shortestpath(G, p, nodes(p).cluster + NUM_NODES + 1);
         if nodes(p).state == 0
-            dead_nodes += 1;
+            dead_nodes = dead_nodes + 1;
         end
     end
     
