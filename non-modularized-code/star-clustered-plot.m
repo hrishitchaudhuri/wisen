@@ -87,8 +87,10 @@ dead_nodes = 0;
 plot_idx = 1;
 round_stat = zeros;
 dead_stats = zeros;
+i = 0;
 
 while dead_nodes < NUM_NODES
+    i = i+1;
     for j = 1:1:NUM_NODES
         if (nodes(j).state == 1 && nodes(j).cluster == wake_clust)
             
