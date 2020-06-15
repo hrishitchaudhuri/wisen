@@ -1,4 +1,4 @@
-clc; clear; close;
+clc; clear all; close all;
 
 %%%%%%%%%%%%%%%%%%%% PARAMETERS %%%%%%%%%%%%%%%%%%%%
 
@@ -11,7 +11,7 @@ sink.x = 0.5 * x_max;
 sink.y = 0.5 * y_max;
 
 % Number of Nodes
-NUM_NODES = 100;
+NUM_NODES = 20;
 
 % Number of Clusters
 k = 5;
@@ -40,7 +40,6 @@ threshold = 300;
 
 % Threshold Distance
 do = Efs/Emp;
-
 
 % Creating a random sensor network
 figure(1);
@@ -82,11 +81,11 @@ end
 G = graph();
 for i = 1:1:NUM_NODES
     for j = i:1:NUM_NODES
-        if ((nodes(i).cluster == nodes(j).cluster)&&(i~=j))
+        if (nodes(i).cluster == nodes(j).cluster&&(i~=j))
             if nodes(i).distance <= threshold
                 G = addedge(G, i, NUM_NODES + nodes(i).cluster + 1, nodes(i).distance);
             end
-      
+            
             node_dist = ((nodes(i).x - nodes(j).x)^2 + (nodes(i).y - nodes(j).y)^2);
             if node_dist < threshold
                 G = addedge(G, i, j, node_dist);
@@ -98,8 +97,6 @@ end
 for i = 1:1:NUM_NODES
     nodes(i).route = shortestpath(G, i, NUM_NODES + nodes(i).cluster + 1);
 end
-
-
 
 % distances = zeros;
 % for i = 0:1:k-1
@@ -115,16 +112,31 @@ round_stat = zeros;
 dead_stats = zeros;
 num_temp = NUM_NODES;
 dead_nodes = 0;
+nodes_without_link=0;
+non_link_nodes = 0;
 
-rounds=0;
+for j=0:1:k-1
+    v = dfsearch(G,NUM_NODES+j+1);
+    for i=1:1:NUM_NODES       
+        if(nodes(i).cluster==(j))
+        check_for_dead_node = ismember(i,v);
+        if(check_for_dead_node==0)
+        nodes_without_link = nodes_without_link+1;
+        non_link_nodes(numel(non_link_nodes)+1) = i;
+        end
+        end
+    end
+end
+
+non_link_nodes(1) = [];
+dead_nodes = nodes_without_link;
 
 while dead_nodes < NUM_NODES
-%      dead_nodes = 0;
-     nodes_without_link=0;
+%     dead_nodes = nodes_without_link;
     for j = 1:1:num_temp
         if (nodes(j).state == 1) & (nodes(j).cluster == wake_clust)
             for m = 1:1:length(nodes(j).route)-1
-                if (nodes(j).route(m+1) <=100)  
+                if (nodes(j).route(m+1) <= NUM_NODES)  
                     if (nodes(nodes(j).route(m)).state == 1 && nodes(nodes(j).route(m+1)).state == 1)
                     
                     dist_node = ((nodes(nodes(j).route(m)).x - nodes(nodes(j).route(m+1)).x)^2 + (nodes(nodes(j).route(m)).y - nodes(nodes(j).route(m+1)).y)^2);
@@ -136,7 +148,7 @@ while dead_nodes < NUM_NODES
                         nodes(nodes(j).route(m)).battery = nodes(nodes(j).route(m)).battery - ((ETX)*(packet_length) + Efs*packet_length*(dist_node)); 
                     end
         
-                    if nodes(j).route(m+1 <= 100)   
+                    if (nodes(j).route(m+1) <= NUM_NODES)   
                         nodes(nodes(j).route(m+1)).battery = nodes(nodes(j).route(m+1)).battery - (ERX)*(packet_length);
                     end
                     
@@ -146,11 +158,13 @@ while dead_nodes < NUM_NODES
                     if nodes(nodes(j).route(m)).battery <= 0.1*Eo
                         nodes(nodes(j).route(m)).state = 0;
                         plot(nodes(nodes(j).route(m)).x, nodes(nodes(j).route(m)).y, 'black x');
+                        hold on;
                     end
                 
                     if nodes(nodes(j).route(m+1)).battery <= 0.1*Eo
                         nodes(nodes(j).route(m+1)).state = 0;
                         plot(nodes(nodes(j).route(m+1)).x, nodes(nodes(j).route(m+1)).y, 'black x');
+                        hold on;
                     end
                 
                 else
@@ -165,11 +179,11 @@ while dead_nodes < NUM_NODES
                     if nodes(nodes(j).route(m)).battery <= 0.1*Eo
                         nodes(nodes(j).route(m)).state = 0;
                         plot(nodes(nodes(j).route(m)).x, nodes(nodes(j).route(m)).y, 'black x');
+                        hold on;
                     end
                 end
                 
             end
-%         v = dfsearch(G,NUM_NODES+nodes(j).cluster+1);
         end
     end
     
@@ -190,22 +204,10 @@ while dead_nodes < NUM_NODES
         if nodes(p).state == 0
             dead_nodes = dead_nodes + 1;
         end
+%         if
     end
     
-%     pause(0.05);
-%      DFS and adding dead nodes
-
-    for i=1:1:NUM_NODES       
-        if(nodes(i).cluster==wake_clust)
-        v = dfsearch(G,NUM_NODES+nodes(i).cluster+1);    
-        check_for_dead_node = ismember(i,v);
-        if(check_for_dead_node==0)
-        nodes_without_link = nodes_without_link+1;
-        end
-        end
-    end
-    
-    dead_nodes=dead_nodes+nodes_without_link;
+%     pause(0.5);
     wake_clust = mod(wake_clust + 1, k);
     
     if (mod(i, k) == 0)
@@ -214,22 +216,18 @@ while dead_nodes < NUM_NODES
         plot_idx = plot_idx + 1;
     end
     
-
-    
     % if (dead_nodes == NUM_NODES)
     %     break;
     % end
-rounds=rounds+1;
-disp(dead_nodes);
-disp(rounds);
+
+    disp(dead_nodes);
 end
 
-disp(nodes_without_link);
-
 figure(2);
+plot(G);
+
+figure(3);
 plot(round_stat, dead_stats);
 hold on;
 
-figure(3);
-plot(G);
-hold on;
+
