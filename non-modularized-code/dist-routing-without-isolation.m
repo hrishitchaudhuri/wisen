@@ -118,7 +118,7 @@ while dead_nodes < NUM_NODES
     for j = 1:1:num_temp
         if (nodes(j).state == 1) & (nodes(j).cluster == wake_clust)
             for m = 1:1:length(nodes(j).route)-1
-                if (nodes(j).route(m+1) <=100)  
+                if (nodes(j).route(m+1) <= NUM_NODES)  
                     if (nodes(nodes(j).route(m)).state == 1 && nodes(nodes(j).route(m+1)).state == 1)
                     
                     dist_node = ((nodes(nodes(j).route(m)).x - nodes(nodes(j).route(m+1)).x)^2 + (nodes(nodes(j).route(m)).y - nodes(nodes(j).route(m+1)).y)^2);
@@ -130,7 +130,7 @@ while dead_nodes < NUM_NODES
                         nodes(nodes(j).route(m)).battery = nodes(nodes(j).route(m)).battery - ((ETX)*(packet_length) + Efs*packet_length*(dist_node)); 
                     end
         
-                    if nodes(j).route(m+1 <= 100)   
+                    if nodes(j).route(m+1 <= NUM_NODES)   
                         nodes(nodes(j).route(m+1)).battery = nodes(nodes(j).route(m+1)).battery - (ERX)*(packet_length);
                     end
                     
