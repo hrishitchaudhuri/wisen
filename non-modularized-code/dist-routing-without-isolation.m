@@ -130,7 +130,7 @@ while dead_nodes < NUM_NODES
                         nodes(nodes(j).route(m)).battery = nodes(nodes(j).route(m)).battery - ((ETX)*(packet_length) + Efs*packet_length*(dist_node)); 
                     end
         
-                    if nodes(j).route(m+1 <= NUM_NODES)   
+                    if (nodes(j).route(m+1) <= NUM_NODES)   
                         nodes(nodes(j).route(m+1)).battery = nodes(nodes(j).route(m+1)).battery - (ERX)*(packet_length);
                     end
                     
