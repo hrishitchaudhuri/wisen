@@ -229,6 +229,7 @@ while dead_nodes < NUM_NODES
     % end
     dead_nodes = nodes_without_link+dead_nodes;
     disp(dead_nodes);
+    nodes_without_link = 0;
 end
 
 
