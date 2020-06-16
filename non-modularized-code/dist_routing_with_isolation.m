@@ -11,7 +11,7 @@ sink.x = 0.5 * x_max;
 sink.y = 0.5 * y_max;
 
 % Number of Nodes
-NUM_NODES = 20;
+NUM_NODES =20;
 
 % Number of Clusters
 k = 5;
@@ -34,7 +34,7 @@ Emp= 0.013*0.0000000001;
 rounds = 100;
 
 % Threshold Distance
-threshold = 300;
+threshold = 900;
 
 %%%%%%%%%%%%%%%%%%%% END OF PARAMETERS %%%%%%%%%%%%%%%%%%%%
 
@@ -80,12 +80,17 @@ end
 
 G = graph();
 for i = 1:1:NUM_NODES
+    if(findnode(G,i)==0)
+    G=addnode(G,i);
+    end
     for j = i:1:NUM_NODES
         if (nodes(i).cluster == nodes(j).cluster&&(i~=j))
-            if nodes(i).distance <= threshold
+            if((nodes(i).distance<=threshold)&&(findnode(G,NUM_NODES+nodes(i).cluster+1)~=0)&&(findedge(G,i,NUM_NODES + nodes(i).cluster + 1)==0))
+                G = addedge(G, i, NUM_NODES + nodes(i).cluster + 1, nodes(i).distance);
+            elseif(findnode(G,NUM_NODES+nodes(i).cluster+1)==0)
                 G = addedge(G, i, NUM_NODES + nodes(i).cluster + 1, nodes(i).distance);
             end
-            
+
             node_dist = ((nodes(i).x - nodes(j).x)^2 + (nodes(i).y - nodes(j).y)^2);
             if node_dist < threshold
                 G = addedge(G, i, j, node_dist);
@@ -129,10 +134,10 @@ for j=0:1:k-1
 end
 
 non_link_nodes(1) = [];
-dead_nodes = nodes_without_link;
+
 
 while dead_nodes < NUM_NODES
-%     dead_nodes = nodes_without_link;
+    dead_nodes = 0;
     for j = 1:1:num_temp
         if (nodes(j).state == 1) & (nodes(j).cluster == wake_clust)
             for m = 1:1:length(nodes(j).route)-1
@@ -188,12 +193,12 @@ while dead_nodes < NUM_NODES
     end
     
     for p_0 = 1:1:NUM_NODES
-        if (nodes(p_0).state == 0) & (findedge(G, p_0, nodes(p_0).cluster + NUM_NODES + 1) ~= zeros)
+        if (nodes(p_0).state == 0) & (findedge(G, p_0, nodes(p_0).cluster + NUM_NODES + 1) ~= 0)
             G = rmedge(G, p_0, nodes(p_0).cluster + NUM_NODES + 1);
         end
         
         for p_1 = p_0:1:NUM_NODES
-            if (findedge(G, p_0, p_1) ~= zeros) & (nodes(p_1).state == 0) || nodes(p_0).state == 0
+            if (findedge(G, p_0, p_1) ~= 0) & (nodes(p_1).state == 0) || nodes(p_0).state == 0
                 G = rmedge(G, p_0, p_1);
             end
         end
@@ -204,7 +209,10 @@ while dead_nodes < NUM_NODES
         if nodes(p).state == 0
             dead_nodes = dead_nodes + 1;
         end
-%         if
+        if((isempty(nodes(p).route)==1)&&nodes(p).state==1)
+            nodes_without_link=nodes_without_link+1;
+            nodes(p).state=0;
+        end
     end
     
 %     pause(0.5);
@@ -219,9 +227,11 @@ while dead_nodes < NUM_NODES
     % if (dead_nodes == NUM_NODES)
     %     break;
     % end
-
+    dead_nodes = nodes_without_link+dead_nodes;
     disp(dead_nodes);
 end
+
+
 
 figure(2);
 plot(G);
