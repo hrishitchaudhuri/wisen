@@ -1,0 +1,127 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc, graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+\title{Energy Efficiency in a WSN}
+\author{Surya Dutta }
+\date{June 2020}
+
+\begin{document}
+\tableofcontents
+\maketitle
+
+\chapter{ \textbf{Chapter 1}}\\
+\section{\textbf{Introduction}}
+A recent interest in engineering disciplines with regard to  wireless sensor networks, catalysed by the rapid development of wireless communication engineering, as well as hardware developments in the field of micro-electronics, has been sparked largely by the fact that batteries deployed in these networks have reached their choke-point, and can no longer provide larger amounts of energy. Wireless sensor networks, commonly deployed randomly in target areas as a method to monitor and keep track of the physical characteristics and features of the domain, are especially chosen due to their rapid deployment and high fault tolerance, are ideal for surveillance in domestic and harsh terrains alike. They can be used in agriculture, in disaster-surveillance, for military purposes, healthcare, forestry, and even with smart homes. 
+
+These networks are constrained largely by their limited battery lives. In order to extend the lifespans of these networks, the obvious solution is to simply extend the energy capacity of the batteries. Unfortunately, as we mention above, the sensor battery has reached its technological choke point, and it has become harder to meaningfully improve the performance of these batteries. As a result, research in extending the lifespans of these sensor networks has started to address the question of efficient routing of data packets within the network, with the experimental use of both novel protocols and algorithms. 
+
+Another important point to consider when dealing with the lifespans of wireless sensor networks is the imbalance in the energy of the nodes. Owing to the fact that the energy consumed by each node is dependent primarily on the number of packets each node transmits and the distance travelled by each transmitted packet, the energy consumed in a particular time period by sensor nodes transmitting their relevant data to the sink might not be homogeneously distributed. This imbalance of energy can also be attributed to the ‘hot-spot’ problem: a problem arising from a static sink and a fixed-network topology, where nodes geographically closer to the sink tend to be busier than nodes situated some distance away. This is because the nodes situated far from the sink usually route their data through the nodes closer to the sink, creating a heavy traffic burden on the closer nodes. This depletes their energy quickly, leading to them dying out earlier than other nodes in the network. Thus, the network lifetime, usually defined as the time taken for the first node in the network to die out, is an important criterion when discussing the efficiency of an algorithm. In addition, the time between the deaths of the first and the last nodes is also an important criterion, since a shorter time period between the two instances points to a more homogeneous energy distribution in the network. 
+
+An interesting approach toward this problem relates to focusing on clustering algorithms: in fact, a large number of promising results have been achieved via this approach. The general schema of all clustering algorithms is to divide the network up into sub-networks of sensors, termed clusters. Among the nodes situated in the clusters, a single node is elected at any point in time to act as the ‘cluster-head’, i.e., it is the node to which all of the other members of the cluster relay their information, and which further transmits this collected information to the base station. In the following sections, we will talk about the classic Low-Energy Adaptive Clustering Algorithm (LEACH), as well as its shortcomings and disadvantages. 
+
+Networks can also be divided into three categories, depending on which kind of topology the nodes in the network are isomorphic to. To correctly optimize energy efficiency in a network of any kind, it is worth finding out which specific topology is suited to the needs at hand. Each of the topologies — star, tree, and mesh — have their own advantages and disadvantages which we shall discuss in a later section. 
+
+\subsection{Problem Statement}
+ To create an energy efficient data collection system in a WSN by dividing the  whole parent network into smaller sub-networks and to route data to a mobile sink by using  OSPF and other related protocols.\\
+\\
+\\
+\\
+The report is further organised into main body which includes the Project Details, Results and Discussions, Conclusions and Future Scopes and Bibliography.\\
+\\
+\\
+\\
+\chapter{\textbf{Chapter 2}}\\
+\section{Literature Survey}
+A great deal of work has been dedicated to solving the problem of energy efficiency and energy balance in WSN. Clustering and sink mobility are two such technologies which  greatly decrease the energy consumption of WSN.  Clustering involves grouping of sensor nodes into clusters and electing cluster heads (CHs) for all the clusters. CHs collect the data from respective cluster’s nodes and forward the aggregated data to the base station. Clustering helps the network simplify the topology structure and avoids the direct communication between sensors and the sink. In mobile sink-supported WSNs, the sink is usually carried by the intelligent vehicles or robots and it can move freely around the sensing field. Networks using mobile sink greatly alleviate the “Hotspot” problem.
+
+Low-energy adaptive clustering hierarchy (LEACH) is one of the most popular and representative hierarchical routing protocols that was first proposed. In LEACH, all sensors are divided into clusters and each cluster has a cluster head (CH). An ordinary node will deliver its monitored data to its corresponding CH, and the CH will fuse and forward the monitored data to the base station (BS). LEACH is much superior to traditional routing protocols in terms of extending the network lifetime. However, due to the random election of CHs, CHs are often unevenly distributed, and CHs communicate with the BS directly, causing large energy dissipation.
+
+Power-efficient gathering in sensor information systems (PEGASIS) is an enhanced version of LEACH, which is a chain-based hierarchical protocol. In PEGASIS, each node only needs to transmit the data package to its nearest neighbor, which is closer to the BS than the source node. CHs are connected into a chain by the greedy algorithm for intercluster communication. Then, each chain leader, which is closest to the BS, takes the responsibility to forward the data packages to the BS. The chain construction makes an economical use of energy by avoiding long-distance communication. Meanwhile, because of using multi-hop propagation, serious network delay could be caused.
+
+Another paper suggests dividing the whole sensor area into sectors of the same size. In each cluster, a CH is selected according to the weight, which is calculated using the residual energy and the distance between the source node and the CH. Source nodes communicate with the CH using single or multi-hop communication in accordance with the optimal energy consumption. Additionally, CHs are connected by a reasonable chain, which is constructed by the greedy algorithm for inter-cluster communication. The CH that is closest to the sink is chosen as the leader to communicate with the sink. Then, the mobile sink moves along a predefined trajectory for data gathering.
+\\
+\\
+\\
+\chapter{\textbf{Chapter 3}}\\
+\section{Project Details}
+\\
+\subsection{WSN Basics}\\
+A WSN is a type of network which is used to monitor specific conditions over a particular time period. A WSN consists of sensor nodes , which are placed specifically/randomly in an area and these sensor nodes communicate remotely without use of any wires. A typical sensor network consists of sensors, a  controller and a communication system. If the communication system in a Sensor Network is implemented using a Wireless protocol, then the networks are known as Wireless Sensor Networks or simply WSNs . These sensor nodes may range from a small transceiver to a full-fledged multi-functional chip. 
+\\
+\begin{figure}[h] 
+\begin{center} 
+\includegraphics[width=140mm, height=100mm]{Wireless-Sensor-Networks-WSN.jpg}  
+\caption{{\bf{Basic Representation of a WSN} }} 
+\label{Representation of a WSN} 
+\end{center} 
+\end{figure}\\
+\\
+\\
+\begin{figure}[h] 
+\begin{center} 
+\includegraphics[width=140mm, height=100mm]{Wireless-Sensor-Networks-Network-Architecture.jpg}  
+\caption{{\bf{Network Architecture in a WSN} }} 
+\label{Network Architecture} 
+\end{center} 
+\end{figure}\\
+\\
+\\
+Parameters focused upon when designing a WSN include:\\
+• Node Energy and Lifetime of the network\\
+• Reliability of transmission\\
+• Latency in the network\\
+• Sensor Data Collection\\
+• Data Routing\\
+• WSN Security\\
+\\
+When a packet is passed from one network segment to another , it is called a hop.\\
+Single Hop Network - A network where the endpoints (i.e. source and destination) are the only stations in the network. Because there is only one other station, aside from the source (i.e. one “hop” - the destination), this is designated a single-hop network. In essence, this is logically a direct connection.\\
+Multi hop Network - A network where, aside from the two endpoints, at least 1 other station exists in the path between the source and destination. This is designated a multi-hop network.
+\\
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.4\linewidth]{Wireless-Sensor-Networks-Sensor-Architecture-Single-Hop.jpg}
+  \caption{\bf{Single hop network}}
+  \label{fig:sub1}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=.4\linewidth]{Wireless-Sensor-Networks-Network-Architecture-Multi-Hop.jpg}
+  \caption{\bf{Multi-hop Network}}
+  \label{fig:sub2}
+\end{subfigure}
+\caption{\bf{Representations of single and multi hop networks}}
+\label{fig:test}
+\end{figure}
+\\
+\\
+The structure of a network includes various topologies like star, mesh and tree topologies. Irrespective of the application , WSNs are classified into the following different categories:\\
+Static and Mobile WSN\\
+Deterministic and Nondeterministic WSN\\
+Single Base Station and Multi Base Station WSN\\
+Static Base Station and Mobile Base Station WSN\\
+Single-hop and Multi-hop WSN\\
+Self – Reconfigurable and Non – Self – Configurable WSN\\
+Homogeneous and Heterogeneous WSN\\
+\\
+\subsection{TCP/IP and OSI Models}
+\\
+\subsubsection{TCP/IP Model}
+The TCP/IP model determines how a specific machine should be connected to the internet and how data is transmitted between them.  Having a flexible architecture , TCP is a connection oriented transport layer protocol and IP is a network layer protocol . TCP ensures reliability and data sequencing so that the data packets are not lost during transmission. TCP also implements flow control, can be operated independently and supports many other routing protocols.
+The TCP/IP stack is made up of 4 layers which have the following functions -
+\\
+\begin{figure}[h] 
+\begin{center} 
+\includegraphics[width=140mm, height=100mm]{Wireless-Sensor-Networks-Network-Architecture.jpg}  
+\caption{{\bf{Network Architecture in a WSN} }} 
+\label{Network Architecture} 
+\end{center} 
+\end{figure}\\
+
+
+\end{document}
