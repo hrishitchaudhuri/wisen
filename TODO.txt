@@ -1,0 +1,10 @@
+TODO:
+
+1. Finish setting up boundary conditions for mobile sink path.
+2. Set up routing protocol (possibly similar to https://ieeexplore.ieee.org/document/6040374)
+3. Use topologies other than tree topology and record impact on energy statistics
+4. Also address costs of sending + receiving hello packets & other advertisement packets (varies w number of dead/alive nodes)
+5. Get publishable statistics w comparison against other protocols
+
+// Does this still technically count as a clustering algorithm?
+// Also are we aiming for a new protocol or algorithm?
