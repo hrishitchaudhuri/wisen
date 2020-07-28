@@ -13,7 +13,7 @@
 
 
 close all;
-clear;
+% clear all;
 clc;
 
 %%%%%%%%%%%%%%%%%%%% Network Establishment Parameters %%%%%%%%%%%%%%%%%%%%
@@ -81,7 +81,8 @@ ms_Po.y = sinky;
 
 
             %%% Creation of the Wireless Sensor Network %%%
-
+            
+            
 % Plotting the WSN %
 for i=1:n
     
@@ -362,6 +363,7 @@ end
     
     tr(transmissions)=operating_nodes;
     op(rnd)=operating_nodes;
+    avg_res_nodes(rnd,5) = operating_nodes; %for average of multiple simulations 
     
 
     if energy>0
@@ -389,12 +391,12 @@ temp2=temp1/n;
 for i=1:flag1stdead
 avg_node(i)=temp2;
 end
-    
+
     % Plotting Simulation Results "Operating Nodes per Round" %
     figure(2)
     plot(1:rnd,op(1:rnd),'-r','Linewidth',2);
     title ({'LEACH'; 'Operating Nodes per Round';})
-    xlabel 'Rounds (R=40)';
+    xlabel 'Rounds';
     ylabel 'Operational Nodes ';
     hold on;
     
@@ -422,8 +424,7 @@ end
     xlabel 'Transmissions';
     ylabel 'Energy ( J )';  
     hold on;
-    
-
+   
 % Function for finding nearest neighbour_CHs and Distance between them
 function[neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,CLheads)
     neigh_CHs_id = [];
