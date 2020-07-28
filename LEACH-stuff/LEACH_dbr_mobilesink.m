@@ -52,7 +52,7 @@ Eamp=100*10^(-12); % units in Joules/bit/m^2 (amount of energy spent by the ampl
 EDA=5*10^(-9); % units in Joules/bit
 
 % Size of data package %
-k=4000; % units in bits
+k=500; % units in bits
 
 % Suggested percentage of cluster head %
 p=0.05; % a 5 percent of the total amount of nodes used in the network is proposed to give good results
@@ -72,6 +72,10 @@ operating_nodes=n;
 transmissions=0;
 temp_val=0;
 flag1stdead=0;
+
+% Mobile sink initial positions
+ms_Po.x = sinkx+radius;
+ms_Po.y = sinky;
 %%%%%%%%%%%%%%%%%%%%%%%%%%% End of Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -104,8 +108,6 @@ for i=1:n
     title 'Wireless Sensor Network';
     xlabel '(m)';
     ylabel '(m)';
-    viscircles([50,50],radius);
-    
 end
  
 
@@ -115,6 +117,25 @@ end
              
 
 while operating_nodes>0
+    flag=0;
+    viscircles([50,50],radius);
+    if ((mod(rnd,4)==0))
+        ms_Po.x = sinkx+radius;
+        ms_Po.y = sinky;
+    end
+    if(mod(rnd,4)==1)
+        ms_Po.x = sinkx;
+        ms_Po.y = sinky+radius;
+    end
+    if(mod(rnd,4)==2)
+        ms_Po.x = sinkx-radius;
+        ms_Po.y = sinky;
+    end
+    if(mod(rnd,4)==3)
+        ms_Po.x = sinkx;
+        ms_Po.y = sinky-radius;
+    end
+    plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);
         
     % Displays Current Round %     
     rnd;     
@@ -156,16 +177,11 @@ while operating_nodes>0
                     CL(CLheads).id=i; % Assigns the node ID of the newly elected cluster head to an array
                     CL(CLheads).route = [];
                     CL(CLheads).path = 0;
-                    if (SN(i).dts>radius)
-                        CL(CLheads).dcir=SN(i).dts-radius;
-                        DCIR(CLheads) = CL(CLheads).dcir; 
-                    else
-                        CL(CLheads).dcir=radius-SN(i).dts;
-                        DCIR(CLheads) = CL(CLheads).dcir;
+                    CL(CLheads).dcir=sqrt((CL(CLheads).x-ms_Po.x)^2+(CL(CLheads).y-ms_Po.y)^2);
+                    DCIR(CLheads) = CL(CLheads).dcir; 
                     end
-                    end
+           end
         
-            end
         end
         
 	% Fixing the size of "CL" array %
