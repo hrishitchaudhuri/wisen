@@ -298,7 +298,7 @@ while dead_nodes < NUM_NODES
 
     for i=1:CLheads
       if((nodes(CL(CL(i).route).id).battery>0)&&(nodes(CL(CL(i).route).id).cond==1)&&(nodes(CL(CL(i).route).id).role==1)&&(i~=least_CH_id))
-          ERx=(Eelec)*packet_length;
+          ERx=(Eelec)*packet_length*CH_s(i).num_of_nodes;
 %           energy=energy+ERx;
           nodes(CL(CL(i).route).id).battery=nodes(CL(CL(i).route).id).battery - ERx;
           if nodes(CL(CL(i).route).id).battery<=0  % if cluster heads energy depletes with reception
@@ -315,11 +315,11 @@ while dead_nodes < NUM_NODES
      if (nodes(CL(i).id).cond==1)  && (nodes(CL(i).id).role==1 ) && (i~=least_CH_id)
          if (nodes(CL(i).id).battery)>0
             if(CL(i).dist<do)
-            ETx= (Eelec)*packet_length + Efs*packet_length*CL(i).dist^2;
+            ETx= (Eelec)*packet_length*CH_s(i).num_of_nodes + Efs*packet_length*CH_s(i).num_of_nodes*CL(i).dist^2;
             nodes(CL(i).id).battery=nodes(CL(i).id).battery- ETx;
 %             energy=energy+ETx;
             else
-            ETx= (Eelec)*packet_length + Emp*packet_length*CL(i).dist^4;
+            ETx= (Eelec)*packet_length + Emp*packet_length*CH_s(i).num_of_nodes*CL(i).dist^4;
             nodes(CL(i).id).battery=nodes(CL(i).id).battery- ETx;
 %             energy=energy+ETx;                
             end
@@ -333,11 +333,11 @@ while dead_nodes < NUM_NODES
      elseif(nodes(CL(i).id).cond==1)  && (nodes(CL(i).id).role==1 ) && (i==least_CH_id)
          if (nodes(CL(i).id).battery)>0
             if(CL(i).dist<do)
-            ETx= (Eelec)*packet_length + Efs*packet_length*CL(i).dcir^2;
+            ETx= (Eelec)*packet_length*NUM_NODES + Efs*packet_length*operating_nodes*CL(i).dcir^2;
             nodes(CL(i).id).battery=nodes(CL(i).id).battery- ETx-packet_length*Eelec;
 %             energy=energy+ETx;                
             else
-            ETx= (Eelec)*packet_length + Emp*packet_length*CL(i).dcir^4;
+            ETx= (Eelec)*packet_length*NUM_NODES + Emp*packet_length*operating_nodes*CL(i).dcir^4;
             nodes(CL(i).id).battery=nodes(CL(i).id).battery- ETx-packet_length*Eelec;
 %             energy=energy+ETx;                  
             end
