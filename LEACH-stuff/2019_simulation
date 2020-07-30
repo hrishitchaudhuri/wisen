@@ -1,0 +1,206 @@
+close all;
+clear all;
+clc;
+
+%%%%%%%%%%%%%%%%%%%% Network Establishment Parameters %%%%%%%%%%%%%%%%%%%%
+
+%%% Area of Operation %%%
+
+% Field Dimensions in meters %
+xm=100;
+ym=100;
+% radius_network = 130;
+x=0; % added for better display results of the plot
+y=0; % added for better display results of the plot
+
+% Number of Nodes in the field %
+n=100;
+
+% Number of Dead Nodes in the beggining %
+dead_nodes=0;
+
+% Coordinates of the Sink (location is predetermined in this simulation) %
+sinkx=0;
+sinky=0;
+
+%%% Energy Values %%%
+% Initial Energy of a Node (in Joules) % 
+Eo=0.5; % units in Joules
+
+% Energy required to run circuity (both for transmitter and receiver) %
+Eelec=50*10^(-9); % units in Joules/bit
+
+% Transmit Amplifier Types %
+Eamp=100*10^(-12); % units in Joules/bit/m^2 (amount of energy spent by the amplifier to transmit the bits)
+
+% Data Aggregation Energy %
+EDA=5*10^(-9); % units in Joules/bit
+
+% Size of data package %
+k=500; % units in bits
+
+% Suggested percentage of cluster head %
+p=0.05; % a 5 percent of the total amount of nodes used in the network is proposed to give good results
+
+% Number of Clusters %
+No=p*n; 
+% Radius of circular trajectory of mobile sink
+radius = 75;
+
+% Round of Operation %
+rnd=0;
+
+% Efs and Emp values
+Efs = 10*10^(-12);
+Emp = 13*10^(-16);
+
+% Threshold for nodes
+do = sqrt(Efs/Emp);
+
+% Current Number of operating Nodes %
+operating_nodes=n;
+transmissions=0;
+temp_val=0;
+flag1stdead=0;
+
+% Mobile sink initial positions
+ms_Po.x = sinkx+radius;
+ms_Po.y = sinky;
+%%%%%%%%%%%%%%%%%%%%%%%%%%% End of Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+            %%% Creation of the Wireless Sensor Network %%%
+
+Nchs = 5;
+angle_sector = 2*pi/Nchs;
+
+            
+% Plotting the WSN %
+for i=1:n
+    
+    SN(i).id=i;	% sensor's ID number
+    SN(i).x=(-1+(1+1).*rand(1,1))*100;	% X-axis coordinates of sensor node
+    SN(i).y=(-1+(1+1).*rand(1,1))*100;	% Y-axis coordinates of sensor node
+    SN(i).E=Eo;     % nodes energy levels (initially set to be equal to "Eo"
+    SN(i).role=0;   % node acts as normal if the value is '0', if elected as a cluster head it  gets the value '1' (initially all nodes are normal)
+%     SN(i).cluster=0;	% the cluster which a node belongs to
+    SN(i).cond=1;	% States the current condition of the node. when the node is operational its value is =1 and when dead =0
+    SN(i).rop=0;	% number of rounds node was operational
+    SN(i).rleft=0;  % rounds left for node to become available for Cluster Head election
+    SN(i).dtch=0;	% nodes distance from the cluster head of the cluster in which he belongs
+    SN(i).dts=0;    % nodes distance from the sink
+    SN(i).tel=0;	% states how many times the node was elected as a Cluster Head
+    SN(i).rn=0;     % round node got elected as cluster head
+    SN(i).chid=0;   % node ID of the cluster head which the "i" normal node belongs to
+
+    
+%     hold on;
+%     figure(1)
+%     hold on;
+%     plot(sinkx,sinky,'*r');
+%     title 'Wireless Sensor Network';
+%     xlabel '(m)';
+%     ylabel '(m)';
+end
+
+for i=1:n
+    if(SN(i).x>=0&&SN(i).y>=0)
+        SN(i).cluster = ceil((atan(SN(i).y/SN(i).x))/angle_sector);
+    elseif(SN(i).x<0)
+        SN(i).cluster = ceil((atan(SN(i).y/SN(i).x)+pi)/angle_sector);
+    elseif(SN(i).x>=0&&SN(i).y<0)
+        SN(i).cluster = ceil((atan(SN(i).y/SN(i).x)+2*pi)/angle_sector);
+    end
+end
+
+
+for i=1:n
+    hold on;
+    figure(1)
+    hold on;
+%     if(SN(i).cluster==0)
+%     plot(x,y,xm,ym,SN(i).x,SN(i).y,'or',sinkx,sinky,'*r');    
+%     title 'Wireless Sensor Network';
+%     xlabel '(m)';
+%     ylabel '(m)';
+    if(SN(i).cluster==1)
+%     viscircles([sinkx,sinky],radius_network);
+    plot(x,y,xm,ym,SN(i).x,SN(i).y,'og',sinkx,sinky,'*r');    
+    title 'Wireless Sensor Network';
+    xlabel '(m)';
+    ylabel '(m)';    
+    elseif(SN(i).cluster==2)
+%     viscircles([sinkx,sinky],radius_network);
+    plot(x,y,xm,ym,SN(i).x,SN(i).y,'ob',sinkx,sinky,'*r');    
+    title 'Wireless Sensor Network';
+    xlabel '(m)';
+    ylabel '(m)';    
+    elseif(SN(i).cluster==3)
+%     viscircles([sinkx,sinky],radius_network);
+    plot(x,y,xm,ym,SN(i).x,SN(i).y,'*b',sinkx,sinky,'*r');    
+    title 'Wireless Sensor Network';
+    xlabel '(m)';
+    ylabel '(m)';    
+    elseif(SN(i).cluster==4)
+%     viscircles([sinkx,sinky],radius_network);
+    plot(x,y,xm,ym,SN(i).x,SN(i).y,'*g',sinkx,sinky,'*r');    
+    title 'Wireless Sensor Network';
+    xlabel '(m)';
+    ylabel '(m)';    
+    elseif(SN(i).cluster==5)
+%     viscircles([sinkx,sinky],radius_network);
+    plot(x,y,xm,ym,SN(i).x,SN(i).y,'.r',sinkx,sinky,'*r');    
+    title 'Wireless Sensor Network';
+    xlabel '(m)';
+    ylabel '(m)';    
+    end
+end
+
+while opeating_nodes>0
+    viscircles([sinkx,sinky],radius);
+    if ((mod(rnd,4)==0))
+        ms_Po.x = sinkx+radius;
+        ms_Po.y = sinky;
+    end
+    if(mod(rnd,4)==1)
+        ms_Po.x = sinkx;
+        ms_Po.y = sinky+radius;
+    end
+    if(mod(rnd,4)==2)
+        ms_Po.x = sinkx-radius;
+        ms_Po.y = sinky;
+    end
+    if(mod(rnd,4)==3)
+        ms_Po.x = sinkx;
+        ms_Po.y = sinky-radius;
+    end
+    plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);
+    
+% Reseting Previous Amount Of Cluster Heads In the Network %
+    CLheads=0;
+    
+% Reseting Previous Amount Of Energy Consumed In the Network on the Previous Round %
+    energy=0;
+    j=1; 
+ 
+% Cluster Heads Election %
+    for i=1:n
+        SN(i).dcir = sqrt((SN(i).x-ms_Po.x)^2+(SN(i).y-ms_Po.y)^2);
+        SN(i).weight = (SN(i).E)^2/SN(i).dcir;
+    end
+
+    
+    for k=1:Nchs
+        for j=1:n
+            if(SN(j).cond==1&&SN(j).cluster==k)
+                cluster(counter,1) = j;
+                cluster(counter,2) = SN(j).weight;                
+            end
+        end
+        [CH(k).weight,CH(k).id] = max(cluster(:,2));
+        CH(k).id = cluster(CH(k).id,1);
+    end
+end
+
+
