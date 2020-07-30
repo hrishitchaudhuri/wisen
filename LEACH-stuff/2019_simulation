@@ -45,7 +45,7 @@ p=0.05; % a 5 percent of the total amount of nodes used in the network is propos
 % Number of Clusters %
 No=p*n; 
 % Radius of circular trajectory of mobile sink
-radius = 75;
+radius = 25;
 
 % Round of Operation %
 rnd=0;
@@ -66,6 +66,10 @@ flag1stdead=0;
 % Mobile sink initial positions
 ms_Po.x = sinkx+radius;
 ms_Po.y = sinky;
+
+
+% Threshold distance for nodes
+threshold = 30;
 %%%%%%%%%%%%%%%%%%%%%%%%%%% End of Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -93,7 +97,7 @@ for i=1:n
     SN(i).tel=0;	% states how many times the node was elected as a Cluster Head
     SN(i).rn=0;     % round node got elected as cluster head
     SN(i).chid=0;   % node ID of the cluster head which the "i" normal node belongs to
-
+    SN(i).route=[];
     
 %     hold on;
 %     figure(1)
@@ -157,7 +161,7 @@ for i=1:n
     end
 end
 
-while opeating_nodes>0
+% while opeating_nodes>0
     viscircles([sinkx,sinky],radius);
     if ((mod(rnd,4)==0))
         ms_Po.x = sinkx+radius;
@@ -177,8 +181,6 @@ while opeating_nodes>0
     end
     plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);
     
-% Reseting Previous Amount Of Cluster Heads In the Network %
-    CLheads=0;
     
 % Reseting Previous Amount Of Energy Consumed In the Network on the Previous Round %
     energy=0;
@@ -192,15 +194,137 @@ while opeating_nodes>0
 
     
     for k=1:Nchs
+        cluster = zeros;
+        counter=1;
+        CH(k).id = 0;
+        CH(k).weight = 0;
+        CH(k).dcir = 0;        
         for j=1:n
             if(SN(j).cond==1&&SN(j).cluster==k)
                 cluster(counter,1) = j;
-                cluster(counter,2) = SN(j).weight;                
+                cluster(counter,2) = SN(j).weight;
+                counter = counter+1;
             end
         end
         [CH(k).weight,CH(k).id] = max(cluster(:,2));
         CH(k).id = cluster(CH(k).id,1);
+        CH(k).dcir = SN(CH(k).id).dcir;
+        DCIR(k) = CH(k).dcir;
+        CH(k).path =0;
+        CH(k).route = [];
     end
+    
+    
+    
+    
+%     Distance from nodes to CH
+    for i=1:n
+        SN(i).chid = CH(SN(i).cluster).id;
+        SN(i).dtch = sqrt((SN(i).x-SN(SN(i).chid).x)^2+(SN(i).y-SN(SN(i).chid).y)^2);
+    end
+    
+    
+% %     Shortest path for nodes to their respective CH
+%     G = graph();
+%     for i = 1:1:n
+%     if(findnode(G,i)==0)
+%     G=addnode(G,i);
+%     end
+%     for j = i:1:n
+%         if (SN(i).cluster==SN(j).cluster&&(i~=j))
+%             if((SN(i).dtch<=threshold)&&(findnode(G,SN(i).chid)~=0)&(findedge(G,i,SN(i).chid)==0))
+%                 G = addedge(G, i, SN(i).chid, SN(i).dtch);
+%             elseif(findnode(G,SN(i).chid)==0)
+%                 G = addedge(G, i, SN(i).chid, SN(i).dtch);
+%             end
+% 
+%             node_dist = ((SN(i).x - SN(j).x)^2 + (SN(i).y - SN(j).y)^2);
+%             if node_dist < threshold
+%                 G = addedge(G, i, j, node_dist);
+%             end
+%         end
+%     end
+%     end
+% 
+%     for i = 1:1:n
+%         SN(i).route = shortestpath(G, i, SN(i).chid);
+%     end
+    
+    
+%     Finding Leader CH
+    min_dcir = min(DCIR);
+    for i=1:Nchs
+        if(CH(i).dcir==min_dcir)
+            leader_CH_id = CH(i).id;
+        end
+    end
+    
+    
+    
+% distance from CH to Leader CH
+for i = 1:Nchs
+    CH(i).dist=sqrt((SN(leader_CH_id).x-SN(CH(i).id).x)^2 + (SN(leader_CH_id).y-SN(CH(i).id).y)^2);
 end
+
+% distance from CH to next nearest neighbouring CH
+    nearest_neighbour=zeros;
+    for i=1:Nchs
+        for j=i:Nchs
+            if(SN(CH(i).id).cond==1&&(i~=j))
+            nearest_neighbour(i,j)=sqrt((SN(CH(i).id).x-SN(CH(j).id).x)^2 + (SN(CH(i).id).y-SN(CH(j).id).y)^2);
+            nearest_neighbour(j,i)=sqrt((SN(CH(i).id).x-SN(CH(j).id).x)^2 + (SN(CH(i).id).y-SN(CH(j).id).y)^2);
+            end
+            if(SN(CH(i).id).cond==1&&(i==j))
+            nearest_neighbour(i,j)=inf;
+            end
+        end
+    end
+    
+    
+
+% Greedy Algorithm for CHs
+for i=1:Nchs
+    if(CH(i).id~=leader_CH_id)
+    [neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,Nchs);
+    for j=1:Nchs
+        if((CH(neigh_CHs_id(j)).dist<CH(i).dist)&&(CH(neigh_CHs_id(j)).path<2)&&(CH(neigh_CHs_id(j)).id~=leader_CH_id))
+                    CH(i).path=CH(i).path+1;
+                    CH(neigh_CHs_id(j)).path=CH(neigh_CHs_id(j)).path+1;
+                    CH(i).route(length(CH(i).route)+1) = neigh_CHs_id(j); 
+                    break;
+        elseif((CH(neigh_CHs_id(j)).dist<CH(i).dist)&&(CH(neigh_CHs_id(j)).id==leader_CH_id))
+                CH(i).path=CH(i).path+1;
+                CH(neigh_CHs_id(j)).path=CH(neigh_CHs_id(j)).path+1;
+                CH(i).route(length(CH(i).route)+1) = neigh_CHs_id(j); 
+                break;
+        end
+    end
+    else
+        CH(i).route = i;
+    end
+end 
+
+% Updating distance of CHs to closest CH
+for i=1:Nchs
+    CH(i).dist=sqrt((SN(CH(CH(i).route).id).x-SN(CH(i).id).x)^2 + (SN(CH(CH(i).route).id).y-SN(CH(i).id).y)^2); 
+end    
+    
+    
+        
+% end   
+
+function[neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,Nchs)
+    neigh_CHs_id = [];
+    neigh_CHs_dis = nearest_neighbour(i,:);
+    neigh_CHs_dis = sort(neigh_CHs_dis);
+    for j =1:Nchs
+        for k=1:Nchs
+            if(neigh_CHs_dis(j)==nearest_neighbour(i,k))
+                neigh_CHs_id(length(neigh_CHs_id)+1) = k;
+            end
+        end
+    end
+end   
+
 
 
