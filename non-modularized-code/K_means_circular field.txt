@@ -1,0 +1,29 @@
+K_means with circular field and M_S
+Following are the round numbers when the first node dies:
+
+1. Study of the Radius of the Moving Trajectory
+	a. 0  m-> 1296, 1613, 2085, 1369 -> avg = 1590
+	b. 25 m-> 1626, 2114, 2255, 1377 -> avg = 1843
+	c. 50 m-> 1880, 1825, 2846, 681 -> avg = 1808
+	d. 75 m-> 1342, 1373, 968, 2277 -> avg = 1490
+	e. 100m-> 1727, 1171, 668, 1958 -> avg = 1381
+
+2. Study of the Methods of Weight Calculation of CHs
+	a. Weight = E -> 2351, 1320, 1553, 2483 ->avg = 1926
+	b. Weight = E/D -> 2233, 1951, 2200, 2163 ->avg = 2163
+	c. Weight = E^2/D -> 1582, 1626, 2114, 2255 ->avg = 1894
+
+3. Study of the Number of Clusters 
+	a. 3 clusters->2551, 1957, 1887, 2483 ->avg = 2219
+	b. 4 clusters->2530, 3210, 2770, 2246 ->avg = 2689
+	c. 5 clusters->2249, 1226, 2531, 1706 ->avg = 1928
+	d. 6 clusters->2652, 2698, 2190, 1688 ->avg = 2307
+	e. 7 clusters-> 845, 1604, 2172, 1749 ->avg = 1592
+
+4. Study of rounds left to become the CH
+	a. 2 rleft->1992, 2158, 2086, 2852 ->avg = 2272
+	b. 3 rleft->1785, 2456, 2798, 1330 ->avg = 2092
+	c. 4 rleft->2615, 2953, 2628, 2777 ->avg = 2743 
+	d. 5 rleft->2522, 2285, 2461, 2332 ->avg = 2500
+	e. 6 rleft->1791, 1609, 2386, 1783 ->avg = 1892
+	f. 7 rleft->2206, 2569, 2513, 1841 ->avg = 2282
