@@ -1,4 +1,5 @@
 
+
 clc; clear all; close all;
 
 %%%%%%%%%%%%%%%%%%%% Network Establishment Parameters %%%%%%%%%%%%%%%%%%%%
@@ -166,9 +167,7 @@ for i=1:n
 end
 
 
-
-
-% while opeating_nodes>0
+while operating_nodes>0
     viscircles([sinkx,sinky],radius);
     if ((mod(rnd,4)==0))
         ms_Po.x = sinkx+radius;
@@ -195,14 +194,21 @@ end
  
 % Cluster Heads Election %
     for i=1:n
-        SN(i).dcir = sqrt((SN(i).x-ms_Po.x)^2+(SN(i).y-ms_Po.y)^2);
-        SN(i).weight = (SN(i).E)^2/SN(i).dcir;
+        SN(i).role = 0;
+        SN(i).chid = 0;
+        SN(i).dcir = 0;
+        SN(i).weight = 0;        
+        if(SN(i).E>0)
+            SN(i).dcir = sqrt((SN(i).x-ms_Po.x)^2+(SN(i).y-ms_Po.y)^2);
+            SN(i).weight = (SN(i).E)^2/SN(i).dcir;
+        end
     end
 
-    
+
     for k=1:Nchs
         cluster = zeros;
         counter=1;
+        CH(k).num_nodes = 0;
         CH(k).id = 0;
         CH(k).weight = 0;
         CH(k).dcir = 0;        
@@ -210,6 +216,7 @@ end
             if(SN(j).cond==1&&SN(j).cluster==k)
                 cluster(counter,1) = j;
                 cluster(counter,2) = SN(j).weight;
+                CH(k).num_nodes = counter;
                 counter = counter+1;
             end
         end
@@ -217,6 +224,7 @@ end
         CH(k).id = cluster(CH(k).id,1);
         CH(k).dcir = SN(CH(k).id).dcir;
         DCIR(k) = CH(k).dcir;
+        SN(CH(k).id).role = 1;
         CH(k).path =0;
         CH(k).route = [];
     end
@@ -226,8 +234,10 @@ end
     
 %     Distance from nodes to CH
     for i=1:n
-        SN(i).chid = CH(SN(i).cluster).id;
-        SN(i).dtch = sqrt((SN(i).x-SN(SN(i).chid).x)^2+(SN(i).y-SN(SN(i).chid).y)^2);
+        if(SN(i).role==0)
+            SN(i).chid = CH(SN(i).cluster).id;
+            SN(i).dtch = sqrt((SN(i).x-SN(SN(i).chid).x)^2+(SN(i).y-SN(SN(i).chid).y)^2);
+        end
     end
     
     
@@ -311,14 +321,174 @@ for i=1:Nchs
     end
 end 
 
+
 % Updating distance of CHs to closest CH
 for i=1:Nchs
     CH(i).dist=sqrt((SN(CH(CH(i).route).id).x-SN(CH(i).id).x)^2 + (SN(CH(CH(i).route).id).y-SN(CH(i).id).y)^2); 
 end    
+ 
+% % % % % % % % % % % % % % % % % % % Steady Phase%%%%%%%%%%%%%%%%%
+
+% Energy Dissipation for normal nodes %
     
-    
+    for i=1:n
+       if (SN(i).cond==1) && (SN(i).role==0)
+       	if SN(i).E>0
+            if(SN(i).dtch<do)
+                ETx= Eelec*k + Efs*k*SN(i).dtch^2;
+                SN(i).E=SN(i).E - ETx;
+                energy=energy+ETx;
+                disp(1);
+            else
+                ETx= Eelec*k + Emp*k*SN(i).dtch^4;
+                SN(i).E=SN(i).E - ETx;
+                energy=energy+ETx;
+                disp(1);
+            end            
+                     
+        % Dissipation for cluster head during reception
+        if SN(SN(i).chid).E>0 && SN(SN(i).chid).cond==1 && SN(SN(i).chid).role==1
+            ERx=(Eelec)*k*CH(SN(i).cluster).num_nodes;
+            energy=energy+ERx;
+            SN(SN(i).chid).E=SN(SN(i).chid).E - ERx;
+            disp(2);
+             if SN(SN(i).chid).E<=0  % if cluster heads energy depletes with reception
+                SN(SN(i).chid).cond=0;
+                SN(SN(i).chid).rop=rnd;
+                dead_nodes=dead_nodes +1;
+                operating_nodes= operating_nodes - 1;
+                 dead_nodes_check(rnd,1) = SN(i).chid;
+                 dead_nodes_check(rnd,2) = 1;
+             end
+        end   
+        end
+        if SN(i).E<=0       % if nodes energy depletes with transmission
+        dead_nodes=dead_nodes +1;
+        operating_nodes= operating_nodes - 1;
+        SN(i).cond=0;
+        SN(i).chid=0;
+        SN(i).rop=rnd;
+        dead_nodes_check(rnd,1) = i;
+        dead_nodes_check(rnd,2) = 2;
+        end
         
-% end   
+      end
+    end   
+    
+
+    
+% Energy Dissipation for cluster head nodes %
+   
+   for i=1:Nchs
+     if (SN(CH(i).id).cond==1)  && (SN(CH(i).id).role==1 ) && (CH(i).id~=leader_CH_id)
+         if (SN(CH(i).id).E)>0
+            if(CH(i).dist<do)
+            ETx= (Eelec)*k*CH(i).num_nodes + Efs*CH(i).num_nodes*k*CH(i).dist^2;
+            SN(CH(i).id).E=SN(CH(i).id).E- ETx;
+            energy=energy+ETx;
+            disp(3);
+            else
+            ETx= (Eelec)*k*CH(i).num_nodes + Emp*k*CH(i).num_nodes*CH(i).dist^4;
+            SN(CH(i).id).E=SN(CH(i).id).E- ETx;
+            energy=energy+ETx;
+            disp(3);
+            end
+         end
+         if  SN(CH(i).id).E<=0     % if cluster heads energy depletes with transmission
+         dead_nodes=dead_nodes +1;
+         operating_nodes= operating_nodes - 1;
+         SN(CH(i).id).cond=0;
+         SN(CH(i).id).rop=rnd;
+         dead_nodes_check(rnd,1) = CH(i).id;
+         dead_nodes_check(rnd,2) = 3;
+         end
+     
+     elseif(SN(CH(i).id).cond==1)  && (SN(CH(i).id).role==1 ) && (CH(i).id==leader_CH_id)
+         if (SN(CH(i).id).E)>0
+            if(CH(i).dcir<do)
+            ETx= (Eelec)*k*operating_nodes + Efs*k*operating_nodes*CH(i).dcir^2;
+            SN(CH(i).id).E=SN(CH(i).id).E- ETx;
+            energy=energy+ETx; 
+            disp(3);
+            else
+            ETx= (Eelec)*k*operating_nodes + Emp*k*operating_nodes*CH(i).dcir^4;
+            SN(CH(i).id).E=SN(CH(i).id).E-ETx;
+            energy=energy+ETx;
+            disp(3);
+            end
+         end
+         if  SN(CH(i).id).E<=0     % if cluster heads energy depletes with transmission
+         dead_nodes=dead_nodes + 1;
+         operating_nodes= operating_nodes - 1;
+         SN(CH(i).id).cond=0;
+         SN(CH(i).id).rop=rnd;
+         dead_nodes_check(rnd,1) = CH(i).id;
+         dead_nodes_check(rnd,2) = 4;
+         end
+     end
+   end    
+   
+   
+% Energy reception of CHs due to Greedy Algorithm
+
+    for i=1:Nchs
+      if((SN(CH(CH(i).route).id).E>0)&&(SN(CH(CH(i).route).id).cond==1)&&(SN(CH(CH(i).route).id).role==1)&&(CH(i).id~=leader_CH_id))
+          ERx=(Eelec)*k*CH(CH(i).route).num_nodes;
+          energy=energy+ERx;
+          SN(CH(CH(i).route).id).E=SN(CH(CH(i).route).id).E - ERx;
+          disp(4);
+          if SN(CH(CH(i).route).id).E<=0  % if cluster heads energy depletes with reception
+              SN(CH(CH(i).route).id).cond=0;
+              SN(CH(CH(i).route).id).rop=rnd;
+              dead_nodes=dead_nodes +1;
+              operating_nodes= operating_nodes - 1;
+              dead_nodes_check(rnd,1) = CH(CH(i).route).id;
+              dead_nodes_check(rnd,2) = 5;
+          end       
+      end
+    end
+    
+    
+    if operating_nodes<n && temp_val==0
+        temp_val=1;
+        flag1stdead=rnd;
+    end
+    % Display Number of Cluster Heads of this round %
+    %CLheads;
+   
+    
+    transmissions=transmissions+1;
+%     if CLheads==0
+%     transmissions=transmissions-1;
+%     end
+%     
+ 
+    % Next Round %
+    rnd= rnd +1;
+    
+    tr(transmissions)=operating_nodes;
+    op(rnd)=operating_nodes;
+    avg_res_nodes(rnd,5) = operating_nodes; %for average of multiple simulations 
+    
+
+    if energy>0
+    nrg(transmissions)=energy;
+    end
+    
+    
+    
+    
+%        if operating_nodes==8
+%            break;
+%        end
+
+disp(operating_nodes);
+fprintf('rnd = %d',rnd);
+disp(flag1stdead);
+   
+end
+
+
 
 function[neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,Nchs)
     neigh_CHs_id = [];
@@ -331,8 +501,5 @@ function[neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,Nchs)
             end
         end
     end
-end   
-
-
-
+end
 
