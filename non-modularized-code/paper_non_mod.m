@@ -75,28 +75,45 @@ end
     rounds = 0;
     operating_nodes = NUM_NODES;
     while dead_nodes<NUM_NODES
+        
+
         %%Calculating weights and electing CH's
         for i = 1:no_of_clusters
             counter = 1;
             for j = 1:NUM_NODES
-                if(nodes(j).cluster==i)
+                if(nodes(j).cluster==i && nodes(j).cond == 1)
                     nodes(j).role=0;
                     nodes(j).weight = nodes(j).battery^2/nodes(j).dist_origin;
                     clusters(counter, i)=nodes(j).id;
                     weights(counter, i)=nodes(j).weight;
+                    
+                    CH_s(i).no_of_nodes = counter;
                     counter = counter+1;
                 end
-                CH_s(i).no_of_nodes = counter;
+                
             end
-            [weight, ID] = max(weights(:,i));
-            CH_s(i).id = clusters(ID,i) ;
-            nodes(CH_s(i).id).role = 1;
+            if(CH_s(i).no_of_nodes ~= 0 )
+                [weight, ID] = max(weights(:,i));
+                CH_s(i).id = clusters(ID,i);
+                if (nodes(clusters(ID,i)).cond ==1)
+                   nodes(CH_s(i).id).role = 1; 
+                end
+            else
+                CH_s(i).id = 0;
+            end
+            
         end
-
+        
         %%Calculating distance of nodes from CH's
         for i = 1:no_of_clusters
             for j = 1:NUM_NODES
-                if(nodes(j).cluster == i)
+                
+                if(nodes(j).cluster == i && nodes(j).cond == 1)
+%                     if(CH_s(nodes(j).cluster).no_of_nodes == 0)
+%                         nodes(j).cond = 0;
+%                         nodes(j).role = 0;
+%                     end
+                    
                     nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
                 end
             end
@@ -105,7 +122,7 @@ end
         
         for i = 1:NUM_NODES
             if(nodes(i).cond == 1)
-                if (nodes(i).role == 0)
+                if (nodes(i).role == 0 )
                     if (nodes(i).dist_CH < do)
                         nodes(i).battery = nodes(i).battery - (packet_length*Eelec + Efs*packet_length*(nodes(i).dist_CH)^2);
                     end
@@ -126,13 +143,17 @@ end
                         end
                     end
                 end
-            if(nodes(i).battery<=0)
+            if(nodes(i).battery<=10^-3)
                 nodes(i).cond = 0;
+                nodes(i).role = 0;
+                
 %                 nodes(i).cluster = 0;
                 nodes(i).rip = rounds;
                 dead_nodes = dead_nodes + 1;
                 operating_nodes = operating_nodes - 1;
                 disp(nodes(i).id);
+                CH_s(nodes(i).cluster).no_of_nodes = CH_s(nodes(i).cluster).no_of_nodes -1 ;
+
             end
             end
          end
@@ -140,9 +161,12 @@ end
         disp(rounds);
         op(rounds)=operating_nodes;
         
+        
+
 %         Resetting variables for next round 
-%         clusters = zeros;
-%         weights = zeros;
+        clusters = zeros;
+        weights = zeros;
+       
     end
 
     
