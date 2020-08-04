@@ -79,7 +79,7 @@ end
         for i = 1:no_of_clusters
             counter = 1;
             for j = 1:NUM_NODES
-                if(nodes(j).cluster == i)
+                if(nodes(j).cluster==i)
                     nodes(j).role=0;
                     nodes(j).weight = nodes(j).battery^2/nodes(j).dist_origin;
                     clusters(counter, i)=nodes(j).id;
@@ -92,6 +92,7 @@ end
             CH_s(i).id = clusters(ID,i) ;
             nodes(CH_s(i).id).role = 1;
         end
+
         %%Calculating distance of nodes from CH's
         for i = 1:no_of_clusters
             for j = 1:NUM_NODES
@@ -125,28 +126,29 @@ end
                         end
                     end
                 end
-            end
             if(nodes(i).battery<=0)
                 nodes(i).cond = 0;
+%                 nodes(i).cluster = 0;
+                nodes(i).rip = rounds;
                 dead_nodes = dead_nodes + 1;
                 operating_nodes = operating_nodes - 1;
                 disp(nodes(i).id);
             end
-        end
+            end
+         end
         rounds = rounds+1;
         disp(rounds);
-%         if(dead_nodes == 1)
-%             disp(rounds);
-%             break
-%         end
         op(rounds)=operating_nodes;
+        
+%         Resetting variables for next round 
+%         clusters = zeros;
+%         weights = zeros;
     end
 
     
 figure(2)
 plot(1:rounds,op(1:rounds),'-g','Linewidth',2);
-axis([0  6000    0  NUM_NODES]);
+% axis([0  6000    0  NUM_NODES]);
 
 hold on;
-    
     
