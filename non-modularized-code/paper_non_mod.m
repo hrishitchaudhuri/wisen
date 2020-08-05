@@ -6,6 +6,7 @@ radius_field = 100;
 x0 = 0;
 y0 = 0;
 packet_length = 500;
+ad_length = 10;
 %%%%Energy parameters
 Eo = 0.5;
 Eelec=50*10^(-9); % units in Joules/bit
@@ -97,9 +98,11 @@ end
                 CH_s(i).id = clusters(ID,i);
                 if (nodes(clusters(ID,i)).cond ==1)
                    nodes(CH_s(i).id).role = 1; 
+                   CH_each_round(i, rounds+1) = CH_s(i).id;
                 end
             else
                 CH_s(i).id = 0;
+                CH_each_round(i, rounds+1) = CH_s(i).id;
             end
             
         end
@@ -108,15 +111,39 @@ end
         for i = 1:no_of_clusters
             for j = 1:NUM_NODES
                 
-                if(nodes(j).cluster == i && nodes(j).cond == 1)
+                if(nodes(j).cluster == i && nodes(j).cond == 1 )
 %                     if(CH_s(nodes(j).cluster).no_of_nodes == 0)
 %                         nodes(j).cond = 0;
 %                         nodes(j).role = 0;
 %                     end
                     
                     nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
+                    if (nodes(i).cond == 1 && nodes(i).role == 1)
+                       if (nodes(j).dist_CH < do)
+                            nodes(i).battery = nodes(i).battery - (ad_length*Eelec + Efs*ad_length*(nodes(j).dist_CH)^2);
+                        end
+                        if (nodes(i).dist_CH >= do)
+                            nodes(i).battery = nodes(i).battery - (ad_length*Eelec + Emp*ad_length*(nodes(j).dist_CH)^4);
+                        end 
+                         if(nodes(i).battery<=10^-3)
+                            nodes(i).cond = 0;
+                            nodes(i).role = 0;
+                            
+            %                 nodes(i).cluster = 0;
+                            nodes(i).rip = rounds;
+                            dead_nodes = dead_nodes + 1;
+                            operating_nodes = operating_nodes - 1;
+                            disp(nodes(i).id);
+                            CH_s(nodes(i).cluster).no_of_nodes = CH_s(nodes(i).cluster).no_of_nodes -1 ;
+    
+                        end
+                    end
+               
+                    
                 end
+                
             end
+            
         end
         %Energy dissipation
         
@@ -129,6 +156,7 @@ end
                     if (nodes(i).dist_CH >= do)
                         nodes(i).battery = nodes(i).battery - (packet_length*Eelec + Emp*packet_length*(nodes(i).dist_CH)^4);
                     end
+                    nodes(i).battery = nodes(i).battery - ad_length*Eelec;
                 end
                 if(nodes(i).role == 1)
                     %For reception
