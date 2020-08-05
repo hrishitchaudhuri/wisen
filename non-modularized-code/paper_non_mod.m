@@ -103,13 +103,14 @@ end
         %%Calculating weights and electing CH's
         for i = 1:no_of_clusters
             counter = 1;
+            CH_s(i).path = 0;
+            CH_s(i).route = [];
             for j = 1:NUM_NODES
                 if(nodes(j).cluster==i && nodes(j).cond == 1)
                     nodes(j).role=0;
                     nodes(j).weight = nodes(j).battery^2/nodes(j).dist_ms;
                     clusters(counter, i)=nodes(j).id;
                     weights(counter, i)=nodes(j).weight;
-                    
                     CH_s(i).no_of_nodes = counter;
                     counter = counter+1;
                 end
@@ -121,23 +122,29 @@ end
                 if (nodes(clusters(ID,i)).cond ==1)
                    nodes(CH_s(i).id).role = 1; 
                    CH_each_round(i, rounds+1) = CH_s(i).id;
+                   CH_s(i).x = nodes(CH_s(i).id).x;
+                   CH_s(i).y = nodes(CH_s(i).id).y;
                    CH_s(i).dist_ms = nodes(CH_s(i).id).dist_ms;
                    dist_MS(i) = CH_s(i).dist_ms;
                 end
             else
                 CH_s(i).id = 0;
                 CH_s(i).dist_ms = inf;
+                CH_s(i).dist = inf;
                 dist_MS(i) = CH_s(i).dist_ms;
+                CH_s(i).path = inf;
+                CH_s(i).route = inf;                
                 CH_each_round(i, rounds+1) = CH_s(i).id;
             end
             
         end
         %%Leader CH election
         [leader_dist_MS, leader_CH_ID] = min(dist_MS);
+        
+        
         %%Calculating distance of nodes from CH's
         for i = 1:no_of_clusters
-            for j = 1:NUM_NODES
-                
+            for j = 1:NUM_NODES 
                 if(nodes(j).cluster == i && nodes(j).cond == 1 )
                     nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
                     if (nodes(i).cond == 1 && nodes(i).role == 1)
@@ -178,16 +185,20 @@ end
                 end
                 if(nodes(i).role == 1)
                     %For reception
-                    nodes(i).battery = nodes(i).battery - packet_length*(CH_s(nodes(i).cluster).no_of_nodes-1)*Eelec;
-                    %For transmission to static sink
-                    if (nodes(i).battery > 0)
-                        if (nodes(i).dist_origin < do)
-                            nodes(i).battery = nodes(i).battery - (CH_s(nodes(i).cluster).no_of_nodes*packet_length*Eelec + Efs*CH_s(nodes(i).cluster).no_of_nodes*packet_length*(nodes(i).dist_origin)^2);
-                        end
-                        if (nodes(i).dist_origin >= do)
-                            nodes(i).battery = nodes(i).battery - (CH_s(nodes(i).cluster).no_of_nodes*packet_length*Eelec + Emp*CH_s(nodes(i).cluster).no_of_nodes*packet_length*(nodes(i).dist_origin)^4);
-                        end
+                    if(CH_s(nodes(i).cluster).no_of_nodes>1)
+                        nodes(i).battery = nodes(i).battery - packet_length*(CH_s(nodes(i).cluster).no_of_nodes-1)*Eelec;
+                    else
+                        nodes(i).battery = nodes(i).battery - packet_length*(CH_s(nodes(i).cluster).no_of_nodes)*Eelec;
                     end
+                    %For transmission to static sink
+%                     if (nodes(i).battery > 0)
+%                         if (nodes(i).dist_origin < do)
+%                             nodes(i).battery = nodes(i).battery - (CH_s(nodes(i).cluster).no_of_nodes*packet_length*Eelec + Efs*CH_s(nodes(i).cluster).no_of_nodes*packet_length*(nodes(i).dist_origin)^2);
+%                         end
+%                         if (nodes(i).dist_origin >= do)
+%                             nodes(i).battery = nodes(i).battery - (CH_s(nodes(i).cluster).no_of_nodes*packet_length*Eelec + Emp*CH_s(nodes(i).cluster).no_of_nodes*packet_length*(nodes(i).dist_origin)^4);
+%                         end
+%                     end
                 end
             if(nodes(i).battery<=10^-3)
                 nodes(i).cond = 0;
@@ -197,12 +208,73 @@ end
                 nodes(i).rip = rounds;
                 dead_nodes = dead_nodes + 1;
                 operating_nodes = operating_nodes - 1;
-                disp(nodes(i).id);
+%                 disp(nodes(i).id);
                 CH_s(nodes(i).cluster).no_of_nodes = CH_s(nodes(i).cluster).no_of_nodes -1 ;
 
             end
             end
-         end
+        end
+        
+     % distance from CH to Leader CH
+    for i = 1:no_of_clusters
+        if(CH_s(i).id>0)
+            CH_s(i).dist=sqrt((CH_s(leader_CH_ID).x-CH_s(i).x)^2 + (CH_s(leader_CH_ID).y-CH_s(i).y)^2);
+        end
+    end
+    
+    % distance from CH to next nearest neighbour
+    nearest_neighbour=zeros;
+    for i=1:no_of_clusters
+        for j=i:no_of_clusters
+            if(i~=j&&CH_s(i).id>0&&CH_s(j).id>0)
+                nearest_neighbour(i,j)=sqrt((CH_s(i).x-CH_s(j).x)^2 + (CH_s(i).y-CH_s(j).y)^2);
+                nearest_neighbour(j,i)=sqrt((CH_s(i).x-CH_s(j).x)^2 + (CH_s(i).y-CH_s(j).y)^2); 
+            end
+            if(i==j||CH_s(i).id==0||CH_s(j).id==0)
+                nearest_neighbour(i,j)=inf;
+                nearest_neighbour(j,i)=inf;
+            end
+        end
+    end
+    
+    % Greedy Algorithm
+    for i=1:no_of_clusters
+        if(i~=leader_CH_ID&&CH_s(i).id>0)
+            [neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,no_of_clusters,CH_s);
+            for j=1:no_of_clusters
+                if(CH_s(neigh_CHs_id(j)).id>0)
+                if((CH_s(neigh_CHs_id(j)).dist<CH_s(i).dist)&&(CH_s(neigh_CHs_id(j)).path<2)&&(neigh_CHs_id(j)~=leader_CH_ID))
+                            CH_s(i).path=CH_s(i).path+1;
+                            CH_s(neigh_CHs_id(j)).path=CH_s(neigh_CHs_id(j)).path+1;
+                            CH_s(i).route(length(CH_s(i).route)+1) = neigh_CHs_id(j); 
+                            break;
+                elseif((CH_s(neigh_CHs_id(j)).dist<CH_s(i).dist)&&(neigh_CHs_id(j)==leader_CH_ID))
+                        CH_s(i).path=CH_s(i).path+1;
+                        CH_s(neigh_CHs_id(j)).path=CH_s(neigh_CHs_id(j)).path+1;
+                        CH_s(i).route(length(CH_s(i).route)+1) = neigh_CHs_id(j); 
+                        break;
+                end
+                end
+            end
+            
+        elseif(i==leader_CH_ID)
+                CH_s(i).route = i;
+        end
+     end
+    
+    % Updating distance of CHs to closest CH
+    for i=1:no_of_clusters
+        if(CH_s(i).id>0)
+            CH_s(i).dist=sqrt((CH_s(CH_s(i).route).x-CH_s(i).x)^2 + (CH_s(CH_s(i).route).y-CH_s(i).y)^2); 
+        end
+    end
+        
+        
+        
+        
+        
+        
+        
         rounds = rounds+1;
         disp(rounds);
         op(rounds)=operating_nodes;
@@ -222,3 +294,17 @@ plot(1:rounds,op(1:rounds),'-g','Linewidth',2);
 % axis([0  6000    0  NUM_NODES]);
 
 hold on;
+
+
+function[neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,no_of_clusters,CH_s)
+    neigh_CHs_id = [];
+    neigh_CHs_dis = nearest_neighbour(i,:);
+    neigh_CHs_dis = sort(neigh_CHs_dis);
+    for j =1:no_of_clusters
+        for k=1:no_of_clusters
+            if(neigh_CHs_dis(j)==nearest_neighbour(i,k))
+                neigh_CHs_id(length(neigh_CHs_id)+1) = k;
+            end
+        end
+    end
+end
