@@ -7,6 +7,8 @@ x0 = 0;
 y0 = 0;
 packet_length = 500;
 ad_length = 10;
+
+radius_ms = 25;
 %%%%Energy parameters
 Eo = 0.5;
 Eelec=50*10^(-9); % units in Joules/bit
@@ -76,15 +78,35 @@ end
     rounds = 0;
     operating_nodes = NUM_NODES;
     while dead_nodes<NUM_NODES
-        
-
+        flag=0;
+        viscircles([x0,y0],radius_ms);
+        if ((mod(rounds,4)==0))
+            ms_Po.x = x0+radius_ms;
+            ms_Po.y = y0;
+        end
+        if(mod(rounds,4)==1)
+            ms_Po.x = x0;
+            ms_Po.y = y0+radius_ms;
+        end
+        if(mod(rounds,4)==2)
+            ms_Po.x = x0-radius_ms;
+            ms_Po.y = y0;
+        end
+        if(mod(rounds,4)==3)
+            ms_Po.x = x0;
+            ms_Po.y = x0-radius_ms;
+        end
+        plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);
+        for i = 1:NUM_NODES
+            nodes(i).dist_ms = sqrt((nodes(i).x-ms_Po.x)^2+(nodes(i).y-ms_Po.y)^2);
+        end
         %%Calculating weights and electing CH's
         for i = 1:no_of_clusters
             counter = 1;
             for j = 1:NUM_NODES
                 if(nodes(j).cluster==i && nodes(j).cond == 1)
                     nodes(j).role=0;
-                    nodes(j).weight = nodes(j).battery^2/nodes(j).dist_origin;
+                    nodes(j).weight = nodes(j).battery^2/nodes(j).dist_ms;
                     clusters(counter, i)=nodes(j).id;
                     weights(counter, i)=nodes(j).weight;
                     
@@ -99,24 +121,24 @@ end
                 if (nodes(clusters(ID,i)).cond ==1)
                    nodes(CH_s(i).id).role = 1; 
                    CH_each_round(i, rounds+1) = CH_s(i).id;
+                   CH_s(i).dist_ms = nodes(CH_s(i).id).dist_ms;
+                   dist_MS(i) = CH_s(i).dist_ms;
                 end
             else
                 CH_s(i).id = 0;
+                CH_s(i).dist_ms = inf;
+                dist_MS(i) = CH_s(i).dist_ms;
                 CH_each_round(i, rounds+1) = CH_s(i).id;
             end
             
         end
-        
+        %%Leader CH election
+        [leader_dist_MS, leader_CH_ID] = min(dist_MS);
         %%Calculating distance of nodes from CH's
         for i = 1:no_of_clusters
             for j = 1:NUM_NODES
                 
                 if(nodes(j).cluster == i && nodes(j).cond == 1 )
-%                     if(CH_s(nodes(j).cluster).no_of_nodes == 0)
-%                         nodes(j).cond = 0;
-%                         nodes(j).role = 0;
-%                     end
-                    
                     nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
                     if (nodes(i).cond == 1 && nodes(i).role == 1)
                        if (nodes(j).dist_CH < do)
@@ -137,13 +159,9 @@ end
                             CH_s(nodes(i).cluster).no_of_nodes = CH_s(nodes(i).cluster).no_of_nodes -1 ;
     
                         end
-                    end
-               
-                    
-                end
-                
-            end
-            
+                    end 
+                end 
+            end  
         end
         %Energy dissipation
         
@@ -194,6 +212,7 @@ end
 %         Resetting variables for next round 
         clusters = zeros;
         weights = zeros;
+        dist_MS = zeros;
        
     end
 
@@ -203,4 +222,3 @@ plot(1:rounds,op(1:rounds),'-g','Linewidth',2);
 % axis([0  6000    0  NUM_NODES]);
 
 hold on;
-    
