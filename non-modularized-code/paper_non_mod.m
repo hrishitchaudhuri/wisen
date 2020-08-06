@@ -1,4 +1,6 @@
-clc; clear all; close all;
+
+
+ clc; clear all; close all;
 NUM_NODES = 100;
 no_of_clusters = 5;
 angle_sector = 2*pi/no_of_clusters;
@@ -7,7 +9,7 @@ x0 = 0;
 y0 = 0;
 packet_length = 500;
 ad_length = 10;
-
+time_each_round = 0.007;
 radius_ms = 25;
 %%%%Energy parameters
 Eo = 0.5;
@@ -78,25 +80,14 @@ end
     rounds = 0;
     operating_nodes = NUM_NODES;
     while dead_nodes<NUM_NODES
+        tic
         flag=0;
         viscircles([x0,y0],radius_ms);
-        if ((mod(rounds,4)==0))
-            ms_Po.x = x0+radius_ms;
-            ms_Po.y = y0;
-        end
-        if(mod(rounds,4)==1)
-            ms_Po.x = x0;
-            ms_Po.y = y0+radius_ms;
-        end
-        if(mod(rounds,4)==2)
-            ms_Po.x = x0-radius_ms;
-            ms_Po.y = y0;
-        end
-        if(mod(rounds,4)==3)
-            ms_Po.x = x0;
-            ms_Po.y = x0-radius_ms;
-        end
-        plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);
+
+            ms_Po.x = x0+radius_ms*cos(angle_sector*rounds + angle_sector/2);
+            ms_Po.y = y0+radius_ms*sin(angle_sector*rounds + angle_sector/2);
+            ms_Po.cluster = mod(rounds, no_of_clusters)+1;
+%         plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);
         for i = 1:NUM_NODES
             nodes(i).dist_ms = sqrt((nodes(i).x-ms_Po.x)^2+(nodes(i).y-ms_Po.y)^2);
         end
@@ -243,11 +234,11 @@ end
             [neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,no_of_clusters,CH_s);
             for j=1:no_of_clusters
                 if(CH_s(neigh_CHs_id(j)).id>0)
-                if((CH_s(neigh_CHs_id(j)).dist<CH_s(i).dist)&&(CH_s(neigh_CHs_id(j)).path<2)&&(neigh_CHs_id(j)~=leader_CH_ID))
-                            CH_s(i).path=CH_s(i).path+1;
+                if((CH_s(neigh_CHs_id(j)).dist< CH_s(i).dist)&&(CH_s(neigh_CHs_id(j)).path<2)&&(neigh_CHs_id(j)~=leader_CH_ID))
+                        CH_s(i).path=CH_s(i).path+1;
                             CH_s(neigh_CHs_id(j)).path=CH_s(neigh_CHs_id(j)).path+1;
-                            CH_s(i).route(length(CH_s(i).route)+1) = neigh_CHs_id(j); 
-                            break;
+                        CH_s(i).route(length(CH_s(i).route)+1) = neigh_CHs_id(j); 
+                        break;
                 elseif((CH_s(neigh_CHs_id(j)).dist<CH_s(i).dist)&&(neigh_CHs_id(j)==leader_CH_ID))
                         CH_s(i).path=CH_s(i).path+1;
                         CH_s(neigh_CHs_id(j)).path=CH_s(neigh_CHs_id(j)).path+1;
@@ -269,7 +260,27 @@ end
         end
     end
         
+    for i=1:1:no_of_clusters
+        j = i;
+        transmit_nodes = CH_s(i).no_of_nodes;
         
+        if j == leader_CH_ID && CH_s(i).id > 0
+            nodes(CH_s(j).id).battery = nodes(CH_s(j).id).battery - packet_length*transmit_nodes*Eelec;
+        end
+                
+        while j ~= leader_CH_ID && CH_s(j).id > 0 && j ~= Inf
+            if CH_s(j).dist < do
+                % fill stats 1
+                nodes(CH_s(j).id).battery = nodes(CH_s(j).id).battery - (packet_length*transmit_nodes*Eelec + Efs*packet_length*transmit_nodes*(CH_s(j).dist)^2);
+            else
+                % fill stats 2
+                nodes(CH_s(j).id).battery = nodes(CH_s(j).id).battery - (packet_length*transmit_nodes*Eelec + Emp*packet_length*transmit_nodes*(CH_s(j).dist)^4);
+            end
+
+            nodes(CH_s(CH_s(j).route).id).battery = nodes(CH_s(CH_s(j).route).id).battery - packet_length*transmit_nodes*Eelec;
+            j = CH_s(j).route;
+        end
+    end
         
         
         
@@ -285,7 +296,7 @@ end
         clusters = zeros;
         weights = zeros;
         dist_MS = zeros;
-       
+        toc
     end
 
     
@@ -308,3 +319,6 @@ function[neigh_CHs_dis,neigh_CHs_id] = find_neigh_CHs(i,nearest_neighbour,no_of_
         end
     end
 end
+
+
+
