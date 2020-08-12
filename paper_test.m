@@ -1,4 +1,4 @@
-clc; clear all; close all;
+% clc; clear all; close all;
 NUM_NODES = 100;
 no_of_clusters = 5;
 angle_sector = 2*pi/no_of_clusters;
@@ -6,11 +6,11 @@ radius_field = 100;
 x0 = 0;
 y0 = 0;
 packet_length = 500;
-ad_length = 100;
-weight_message = 100;
-CHs_id_message = 100;
+ad_length = 75;
+weight_message = 75;
+CHs_id_message = 75;
 time_each_round = 0.007;
-radius_ms = 100;
+radius_ms = 50;
 %%%%Energy parameters
 Eo = 0.5;
 Eelec=50*10^(-9); % units in Joules/bit
@@ -26,8 +26,8 @@ hold on
 for i = 1:NUM_NODES
     t = 2*pi*rand(1,1);
     r = radius_field*sqrt(rand(1,1));
-    S(i, 1) = x0 + r*cos(t);
-    S(i, 2) = y0 + r*sin(t);
+%     S(i, 1) = x0 + r*cos(t);
+%     S(i, 2) = y0 + r*sin(t);
     plot(S(i, 1), S(i, 2), 'red .');
     title 'Wireless Sensor Network';
     xlabel '(m)';
@@ -54,6 +54,8 @@ for i = 1:NUM_NODES
     nodes(i).battery=Eo;     % nodes energy levels (initially set to be equal to "Eo"
     nodes(i).role=0;   % node acts as normal if the value is '0', if elected as a cluster head it  gets the value '1' (initially all nodes are normal)
     nodes(i).cluster=0;	% the cluster which a node belongs to
+    nodes(i).path = 1;
+    nodes(i).route = 0;
     nodes(i).cond=1;
     nodes(i).dist_origin = sqrt((nodes(i).x-x0)^2+(nodes(i).y-y0)^2);    
     nodes(i).role=0;
@@ -77,16 +79,35 @@ end
     
     %%Main Loop
     while dead_nodes<NUM_NODES
-        tic
         flag=0;
         viscircles([x0,y0],radius_ms);
+        if ((mod(rounds,4)==0))
+            ms_Po.x = x0+radius_ms;
+            ms_Po.y = y0;
+        end
+        if(mod(rounds,4)==1)
+            ms_Po.x = x0;
+            ms_Po.y = y0+radius_ms;
+        end
+        if(mod(rounds,4)==2)
+            ms_Po.x = x0-radius_ms;
+            ms_Po.y = y0;
+        end
+        if(mod(rounds,4)==3)
+            ms_Po.x = x0;
+            ms_Po.y = x0-radius_ms;
+        end
+        plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);        
+               
 
-            ms_Po.x = x0+radius_ms*cos(angle_sector*rounds + angle_sector/2);
-            ms_Po.y = y0+radius_ms*sin(angle_sector*rounds + angle_sector/2);
-            ms_Po.cluster = mod(rounds, no_of_clusters)+1;
+%             ms_Po.x = x0+radius_ms*cos(angle_sector*rounds + angle_sector/2);
+%             ms_Po.y = y0+radius_ms*sin(angle_sector*rounds + angle_sector/2);
+%             ms_Po.cluster = mod(rounds, no_of_clusters)+1;
 %         plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);
         for i = 1:NUM_NODES
             nodes(i).dist_ms = sqrt((nodes(i).x-ms_Po.x)^2+(nodes(i).y-ms_Po.y)^2);
+            nodes(i).path = 1;
+            nodes(i).route = [];                        
         end
         %%Calculating weights and electing CH's
         for i = 1:no_of_clusters
@@ -128,6 +149,31 @@ end
         end
         %%Leader CH election
         [leader_dist_MS, leader_CH_ID] = min(dist_MS);
+
+% %         Relay node for normal nodes
+%         for i=1:no_of_clusters
+%             for j=1:NUM_NODES
+%                 if(nodes(j).role==0 && nodes(j).cluster==i && nodes(j).cond==1)
+%                     nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
+%                 end
+%             end
+%         end
+%         
+%         for i=1:NUM_NODES
+%             for j=1:NUM_NODES
+%                 if(nodes(i).cluster==nodes(j).cluster && nodes(i).cond==1 && nodes(j).cond==1)
+%                     if(nodes(j).role==0 && nodes(i).role==0 && nodes(i).path<2 && nodes(j).path<2 && nodes(j).dist_CH<nodes(i).dist_CH)
+%                         nodes(i).route = j;
+%                         nodes(i).dist_CH = sqrt((nodes(i).x-nodes(j).x)^2+(nodes(i).y-nodes(j).y)^2);
+%                         nodes(i).path = nodes(i).path+1;
+%                         nodes(j).battery = nodes(j).battery - (Eelec)*ad_length;%Energy reception by relay node.
+%                         nodes(j).path = nodes(j).path+1;
+%                     end
+%                 end
+%             end
+%         end        
+        
+        
         
         %Energy for nodes sending message regarding weight to other members of the cluster
 
@@ -167,7 +213,7 @@ end
         for i = 1:no_of_clusters
             for j = 1:NUM_NODES 
                 if(nodes(j).cluster == i && nodes(j).cond == 1 )
-                    nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
+%                     nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
                     if (nodes(i).cond == 1 && nodes(i).role == 1)
                        if (nodes(j).dist_CH < do)
                             nodes(i).battery = nodes(i).battery - (ad_length*Eelec + Efs*ad_length*(nodes(j).dist_CH)^2);
@@ -341,7 +387,6 @@ end
         clusters = zeros;
         weights = zeros;
         dist_MS = zeros;
-        toc
         
         
     end
