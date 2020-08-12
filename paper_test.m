@@ -372,10 +372,6 @@ end
         dist_MS = zeros;
         toc
         
-        if(rounds==1000)
-            break;
-            
-        end
         
     end
 
