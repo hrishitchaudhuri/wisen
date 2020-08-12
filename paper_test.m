@@ -10,7 +10,7 @@ ad_length = 75;
 weight_message = 75;
 CHs_id_message = 75;
 time_each_round = 0.007;
-radius_ms = 50;
+radius_ms = 25;
 %%%%Energy parameters
 Eo = 0.5;
 Eelec=50*10^(-9); % units in Joules/bit
@@ -79,30 +79,13 @@ end
     
     %%Main Loop
     while dead_nodes<NUM_NODES
+        tic
         flag=0;
         viscircles([x0,y0],radius_ms);
-        if ((mod(rounds,4)==0))
-            ms_Po.x = x0+radius_ms;
-            ms_Po.y = y0;
-        end
-        if(mod(rounds,4)==1)
-            ms_Po.x = x0;
-            ms_Po.y = y0+radius_ms;
-        end
-        if(mod(rounds,4)==2)
-            ms_Po.x = x0-radius_ms;
-            ms_Po.y = y0;
-        end
-        if(mod(rounds,4)==3)
-            ms_Po.x = x0;
-            ms_Po.y = x0-radius_ms;
-        end
-        plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);        
-               
 
-%             ms_Po.x = x0+radius_ms*cos(angle_sector*rounds + angle_sector/2);
-%             ms_Po.y = y0+radius_ms*sin(angle_sector*rounds + angle_sector/2);
-%             ms_Po.cluster = mod(rounds, no_of_clusters)+1;
+            ms_Po.x = x0+radius_ms*cos(angle_sector*rounds + angle_sector/2);
+            ms_Po.y = y0+radius_ms*sin(angle_sector*rounds + angle_sector/2);
+            ms_Po.cluster = mod(rounds, no_of_clusters)+1;
 %         plot(ms_Po.x,ms_Po.y,'o','Linewidth',3);
         for i = 1:NUM_NODES
             nodes(i).dist_ms = sqrt((nodes(i).x-ms_Po.x)^2+(nodes(i).y-ms_Po.y)^2);
@@ -213,7 +196,7 @@ end
         for i = 1:no_of_clusters
             for j = 1:NUM_NODES 
                 if(nodes(j).cluster == i && nodes(j).cond == 1 )
-%                     nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
+                     nodes(j).dist_CH = sqrt((nodes(j).x-nodes(CH_s(i).id).x)^2+(nodes(j).y-nodes(CH_s(i).id).y)^2);
                     if (nodes(i).cond == 1 && nodes(i).role == 1)
                        if (nodes(j).dist_CH < do)
                             nodes(i).battery = nodes(i).battery - (ad_length*Eelec + Efs*ad_length*(nodes(j).dist_CH)^2);
@@ -387,7 +370,12 @@ end
         clusters = zeros;
         weights = zeros;
         dist_MS = zeros;
+        toc
         
+        if(rounds==1000)
+            break;
+            
+        end
         
     end
 
