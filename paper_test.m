@@ -1,4 +1,4 @@
-% clc; clear all; close all;
+clc; clear all; close all;
 NUM_NODES = 100;
 no_of_clusters = 5;
 angle_sector = 2*pi/no_of_clusters;
@@ -26,8 +26,8 @@ hold on
 for i = 1:NUM_NODES
     t = 2*pi*rand(1,1);
     r = radius_field*sqrt(rand(1,1));
-%     S(i, 1) = x0 + r*cos(t);
-%     S(i, 2) = y0 + r*sin(t);
+     S(i, 1) = x0 + r*cos(t);
+     S(i, 2) = y0 + r*sin(t);
     plot(S(i, 1), S(i, 2), 'red .');
     title 'Wireless Sensor Network';
     xlabel '(m)';
